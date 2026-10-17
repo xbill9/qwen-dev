@@ -1,0 +1,2 @@
+bfcl_simple: 400 of 400 prompts byte-identical
+gsm8k: 100 of 100 prompts byte-identical

@@ -1,0 +1,1 @@
+1526c207c7b2f6d98baf65a4addae1b2be7e64cc2f3ec0c44a07ca1879d17566  /home/xbill/models/Qwen3.5-2B-gguf/Qwen3.5-2B-bf16.gguf

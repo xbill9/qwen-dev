@@ -1,0 +1,33 @@
+# Secrets and local config
+.env
+.env.*
+!.env.example
+*.key
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+
+# Logs and editor/OS noise
+*.log
+# ...except under benchmarks/runs/, where a log IS the record of a measurement and is
+# committed deliberately. Several REPORT.md files cite these as their evidence; the blanket
+# rule above had been silently excluding all of them.
+!benchmarks/runs/**/*.log
+*.swp
+*.bak
+.DS_Store
+Thumbs.db
+
+# Raw xprof profiler dumps under benchmarks/runs/ are far too large for GitHub: a single
+# run's .xplane.pb hit 615 MB against a 100 MB per-file hard limit. The derived summaries
+# (xprof_kernel_stats.json, xprof_memory_profile.json) and the *.log files above are the
+# committed record of a profiling run; the raw dumps stay local.
+*.xplane.pb
+xprof.tgz
+*.trace.json.gz

@@ -1,0 +1,2 @@
+name, compute_cap, memory.total [MiB], driver_version, pci.device_id
+NVIDIA GeForce RTX 3050 OEM, 8.6, 8192 MiB, 615.78.08, 0x250810DE

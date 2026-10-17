@@ -1,0 +1,24 @@
+# Checkpoints live in the HF cache outside this tree; guard against stray copies.
+*.safetensors
+*.gguf
+*.bin
+gemma-4-*/
+
+__pycache__/
+*.pyc
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
+
+.DS_Store
+.vscode/
+.idea/
+
+# Generated MCP registration
+.mcp.json
+.env
+
+# Runtime logs written by make first-light / make query
+run/
+
+# tpu.env is NOT ignored — it is the source of truth and is committed.

@@ -1,0 +1,25 @@
+{
+ "tag": "bf16",
+ "test": "llama",
+ "prompts": 65,
+ "same_chosen_label": 62,
+ "same_top1_token": 60,
+ "label_p_diff_median": 0.002709384950014826,
+ "label_p_diff_max": 0.5620790154095564,
+ "top5_logprob_diff_median": 0.0501704216003418,
+ "top5_logprob_diff_max": 3.3460302352905273,
+ "label_disagreements": [
+  [
+   "massive-en-US",
+   "massive-10213"
+  ],
+  [
+   "massive-en-US",
+   "massive-10256"
+  ],
+  [
+   "massive-en-US",
+   "massive-10292"
+  ]
+ ]
+}

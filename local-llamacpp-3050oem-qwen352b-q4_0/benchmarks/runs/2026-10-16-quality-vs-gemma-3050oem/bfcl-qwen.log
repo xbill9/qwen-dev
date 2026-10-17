@@ -1,0 +1,1 @@
+{"task": "bfcl_simple", "max_tokens": 512, "n": 400, "right": 284, "accuracy": 0.71, "errors": 0, "truncated": 13, "wall_s": 195.6}

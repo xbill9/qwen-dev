@@ -1,0 +1,199 @@
+# gemma4-dev
+
+A monorepo of **accelerator rigs** for serving [Gemma 4](https://ai.google.dev/gemma) on Google Cloud TPU,
+AWS Inferentia2, and NVIDIA GPUs.
+
+Each rig is a self-contained project that serves one Gemma 4 checkpoint on one hardware shape through one
+runtime. A serving rig ships the same shape of thing: a single-file [MCP](https://modelcontextprotocol.io)
+server (`server.py`, built on MCPServer) exposing a devops agent that provisions capacity, starts a model
+server on it, and does SRE diagnostics against the running endpoint. A handful of **artifact rigs** carry
+only measurements — see the second table below.
+
+**Each rig's MCP server is named after the rig directory** — `tpu-jax-v5e1-2b`, `tpu-vllm-v5e1-2b`, and so
+on. That name is the key the server is registered under, so it prefixes every tool as
+`mcp__<rig>__find_tpu`. The rigs previously all registered as `tpu-devops`, which made a tool call
+ambiguous whenever more than one was loaded. Override per rig with `MCP_SERVER_NAME` (or
+`project-setup.sh --server-name`) only when a client has already registered one under a different key.
+
+The rigs are siblings, not layers — they share ancestry and diverge. Nothing is imported across rig
+boundaries.
+
+## The variants
+
+**Serving rigs** — each ships a `server.py`, an MCP server, and a deployment path:
+
+| Rig | Runtime | Hardware | Model | Notes |
+| --- | --- | --- | --- | --- |
+| [`tpu-vllm-v5e1-2b`](tpu-vllm-v5e1-2b/) | vLLM in Docker | v5e-1 | `gemma-4-E2B-it` | Flex-start Queued Resource; the live-demo rig |
+| [`tpu-vllm-v5e1-2b-q4_0`](tpu-vllm-v5e1-2b-q4_0/) | vLLM in Docker | v5e-1 | `gemma-4-E2B-it-qat-q4_0-unquantized` | QAT-at-q4_0 weights shipped as bf16; the 4-bit load path is unsupported on this stack — see the rig README |
+| [`tpu-vllm-v5e1-2b-w4a16`](tpu-vllm-v5e1-2b-w4a16/) | vLLM in Docker | v5e-1 | `gemma-4-E2B-it-qat-w4a16-ct` | Real 4-bit compressed-tensors weights; **expected to fail** at `compressed_tensors.py:149` until a `wNa16` scheme lands — the rig exists to record that |
+| [`tpu-vllm-v5e1-2b-w8a8`](tpu-vllm-v5e1-2b-w8a8/) | vLLM in Docker, patched `tpu_inference` | v5e-1 | `xbill9/gemma-4-E2B-it-qat-w8a8-int8` | int8 W8A8 built from Google's QAT weights; suite level with bf16 at ~1.5x bf16 throughput on v5e (measured 2026-09-29) |
+| [`tpu-vllm-v5e1-2b-q4w4a16emb4`](tpu-vllm-v5e1-2b-q4w4a16emb4/) | vLLM in Docker, patched `tpu_inference` | v5e-1 | `xbill9/gemma-4-E2B-it-qat-q4_0-w4a16-ct-text-emb4` | QAT W4A16 repack with int4 embedding tables and `lm_head`, text only, 2.64 GiB; not yet measured on v5e |
+| [`tpu-vllm-v5e1-12b-w8a8emb4`](tpu-vllm-v5e1-12b-w8a8emb4/) | vLLM in Docker, patched `tpu_inference` | v5e-1 | `xbill9/gemma-4-12B-it-qat-w8a8-int8-emb4` | 12B int8 W8A8 with int4 vocabulary tables, text only; suite level with bf16, 57 tok/s for one request, 9,728 KV tokens on the 16 GB chip |
+| [`tpu-vllm-v5e1-embed2`](tpu-vllm-v5e1-embed2/) | vLLM in Docker, patched `tpu_inference`, **pooling runner** | v5e-1 | `google/embeddinggemma-2` | Added 2026-10-07: EmbeddingGemma 2 on `/v1/embeddings` via the torchax fallback, with patches for GQA in the encoder-only flash kernel and the sliding-window width. **Not provisioned; nothing measured** |
+| [`tpu-vllm-v5e4-2b-q4_0`](tpu-vllm-v5e4-2b-q4_0/) | vLLM in Docker | v5e-4 | `google/gemma-4-E2B-it-qat-q4_0-unquantized` | Four-chip sibling at TP=4 (2026-10-02). Fails at model load on `nightly` as pulled 2026-10-02, at TP=4 and TP=1 alike (QAT export omits KV-shared layers' K/V weights); serves on the pinned patched image at 201 / 717 / 1,515 tok/s |
+| [`tpu-vllm-v5e4-2b-w4a16`](tpu-vllm-v5e4-2b-w4a16/) | vLLM in Docker | v5e-4 | `google/gemma-4-E2B-it-qat-w4a16-ct` | Four-chip sibling at TP=4 (2026-10-02). Fails at model load on `nightly` as pulled 2026-10-02, at TP=4 and TP=1 alike (QAT export omits KV-shared layers' K/V weights); serves on the pinned patched image at 117 / 409 / 1,084 tok/s |
+| [`tpu-vllm-v5e4-2b-w8a8`](tpu-vllm-v5e4-2b-w8a8/) | vLLM in Docker, patched `tpu_inference` | v5e-4 | `xbill9/gemma-4-E2B-it-qat-w8a8-int8` | Four-chip sibling at TP=4 (2026-10-02). Serves; 190 / 644 / 1,465 output tok/s at 1 / 4 / 16 requests, 1.06-1.11x the v5e-1 rig, KV pool 1.90x |
+| [`tpu-vllm-v5e4-2b-q4w4a16emb4`](tpu-vllm-v5e4-2b-q4w4a16emb4/) | vLLM in Docker, patched `tpu_inference` | v5e-4 | `xbill9/gemma-4-E2B-it-qat-q4_0-w4a16-ct-text-emb4` | Four-chip sibling at TP=4 (2026-10-02). Serves; 187 / 613 / 1,424 output tok/s at 1 / 4 / 16 requests, 1.22-1.46x the v5e-1 rig |
+| [`tpu-vllm-v5e4-12b-w8a8emb4`](tpu-vllm-v5e4-12b-w8a8emb4/) | vLLM in Docker, patched `tpu_inference` | v5e-4 | `xbill9/gemma-4-12B-it-qat-w8a8-int8-emb4` | Four-chip sibling at TP=4 (2026-10-02). Serves; 128 / 451 / 1,213 output tok/s at 1 / 4 / 16 requests, 1.7-2.3x v5e-1, 122,624 KV tokens |
+| [`tpu-vllm-v6e1-2b`](tpu-vllm-v6e1-2b/) | vLLM in Docker | v6e-1 | `gemma-4-E2B-it` | Fork of the v5e-1 rig retargeted to Trillium; provisions in `us-east5-b` |
+| [`tpu-jax-v5e1-2b`](tpu-jax-v5e1-2b/) | pure JAX | v5e-1 | `gemma-4-E2B-it-qat-w4a16-ct` | Hand-rolled engine + OpenAI-compatible server; no Docker, no HF token |
+| [`tpu-jax-v6e1-2b`](tpu-jax-v6e1-2b/) | pure JAX | v6e-1 | `gemma-4-E2B-it-qat-q4_0-unquantized` | Fork of the v5e-1 JAX rig retargeted to Trillium and **migrated off the Cloud TPU API onto Compute Engine** — no queued-resource path at all |
+| [`gce-jaxrust-v6e1-2b`](gce-jaxrust-v6e1-2b/) | Rust-driven XLA (`rlx` → HLO → libtpu PJRT) | v6e-1 | `gemma-4-E2B-it` | Forked from `tpu-jax-v6e1-2b` 2026-08-28 to move the engine off CPython — **no Python in the serving path**. The workspace builds and clippy is clean; **nothing has run on a chip**, and `xla-probe` exists to be the first thing that does. `rlx-gemma` is GPL-3.0-only, so the model feature is opt-in — see `rust/NOTICE.md` |
+| [`tpu-pytorch-v5e1-12b`](tpu-pytorch-v5e1-12b/) | PyTorch / `torch_xla` | v5e-1 | `gemma-4-12B-it-qat-w4a16-ct` | Static-shape decode server |
+| [`tpu-pytorch-v5e1-2b`](tpu-pytorch-v5e1-2b/) | PyTorch / `torch_xla` | v5e-1 | 2B | Near-identical fork of the 12B rig |
+| [`tpu-pytorch-v6e1-2b`](tpu-pytorch-v6e1-2b/) | PyTorch / `torch_xla` | v6e-1 | 2B | |
+| [`tpu-pytorch-inf2-2b`](tpu-pytorch-inf2-2b/) | PyTorch / `torch_neuronx` | inf2 | 2B | **AWS Inferentia2, not GCP** — EC2 + Neuron DLAMI, driven over Systems Manager |
+| [`gpu-jax-g4dn-2b`](gpu-jax-g4dn-2b/) | pure JAX | g4dn (Intel x86_64 + NVIDIA T4, Turing SM 7.5) | `gemma-4-E2B-it` | Forked from `gpu-jax-g5g-2b` 2026-08-28. **Nothing measured.** The A/B control that separates Turing from Graviton2 — same engine, same chip generation, x86_64 host. Also the cheaper box ($0.3678 spot avg vs $0.3996) |
+| [`gpu-jax-g6-2b`](gpu-jax-g6-2b/) | pure JAX | g6 (x86_64 + NVIDIA L4, Ada SM 8.9) | `gemma-4-E2B-it` | Forked from `gpu-jax-g5g-2b` 2026-08-28. **MEASURED the same day: 48.3-48.5 tok/s, 3.7x the T4G at an identical config.** The dtype-tax control, and it answered: conversion 54.0% -> **0.0%**, and the rig now sits at its bandwidth roofline where the T4G sat at 26%. TensorCore stayed 0.0% |
+| [`gpu-vllm-g6-2b`](gpu-vllm-g6-2b/) | vLLM | g6 (x86_64 + NVIDIA L4, Ada SM 8.9) | `gemma-4-E2B-it` | Forked from `gpu-vllm-g5g-2b` 2026-08-28. **Served 2026-08-30** (vLLM 0.28.0); settings aligned with the SageMaker runs 2026-09-29. The runtime control for `gpu-jax-g6-2b` on identical silicon — the only clean runtime A/B here, since the T4G pair's vLLM side used reduced Triton tiles. The fork deletes the sibling's 67-minute build: SM 8.9 is in the published amd64 image |
+| [`gpu-vllm-g6-4b`](gpu-vllm-g6-4b/) | vLLM 0.30.0 | g6 (x86_64 + NVIDIA L4, Ada SM 8.9) | `gemma-4-E4B-it` | Forked from `gpu-vllm-g6-2b` 2026-09-29. **Nothing measured.** The raw-EC2 counterpart of a [sagemaker-gemma](https://github.com/xbill9/sagemaker-gemma) SageMaker run on the same GPU and vLLM version |
+| [`gpu-vllm-g6-2b-w4a16`](gpu-vllm-g6-2b-w4a16/) | vLLM 0.30.0 | g6 (x86_64 + NVIDIA L4, Ada SM 8.9) | `gemma-4-E2B-it-qat-w4a16-ct` | Forked from `gpu-vllm-g6-2b` 2026-09-29. **Nothing measured.** The raw-EC2 counterpart of a [sagemaker-gemma](https://github.com/xbill9/sagemaker-gemma) SageMaker run on the same GPU and vLLM version |
+| [`gpu-vllm-g6-4b-w4a16`](gpu-vllm-g6-4b-w4a16/) | vLLM 0.30.0 | g6 (x86_64 + NVIDIA L4, Ada SM 8.9) | `gemma-4-E4B-it-qat-w4a16-ct` | Forked from `gpu-vllm-g6-2b` 2026-09-29. **Nothing measured.** The raw-EC2 counterpart of a [sagemaker-gemma](https://github.com/xbill9/sagemaker-gemma) SageMaker run on the same GPU and vLLM version |
+| [`gpu-vllm-g6-12b-w4a16`](gpu-vllm-g6-12b-w4a16/) | vLLM 0.30.0 | g6 (x86_64 + NVIDIA L4, Ada SM 8.9) | `gemma-4-12B-it-qat-w4a16-ct` | Forked from `gpu-vllm-g6-2b` 2026-09-29. **Nothing measured.** The raw-EC2 counterpart of a [sagemaker-gemma](https://github.com/xbill9/sagemaker-gemma) SageMaker run on the same GPU and vLLM version |
+| [`gpu-vllm-g6-26b-q4w4a16`](gpu-vllm-g6-26b-q4w4a16/) | vLLM 0.30.0 | g6 (x86_64 + NVIDIA L4, Ada SM 8.9) | `gemma-4-26B-A4B-it-qat-q4_0-w4a16-ct` | Forked from `gpu-vllm-g6-2b` 2026-09-29. **Nothing measured.** The raw-EC2 counterpart of a [sagemaker-gemma](https://github.com/xbill9/sagemaker-gemma) SageMaker run on the same GPU and vLLM version |
+| [`gpu-vllm-g6-31b-w4a16`](gpu-vllm-g6-31b-w4a16/) | vLLM 0.30.0 | g6 (x86_64 + NVIDIA L4, Ada SM 8.9) | `gemma-4-31B-it-qat-w4a16-ct` | Forked from `gpu-vllm-g6-2b` 2026-09-29. **Nothing measured.** The raw-EC2 counterpart of a [sagemaker-gemma](https://github.com/xbill9/sagemaker-gemma) SageMaker run on the same GPU and vLLM version; 31B QAT needs the reduced settings and 32 GiB host in `tpu.env` to start on an L4 |
+| [`gpu-vllm-g4dn-2b`](gpu-vllm-g4dn-2b/) | vLLM | g4dn (Intel x86_64 + NVIDIA T4, Turing SM 7.5) | `gemma-4-E2B-it` | Forked from `gpu-vllm-g6-2b` 2026-08-29 into a directory that was a stale copy of `gpu-jax-g4dn-2b`. **Nothing measured.** It **isolates one of the two problems** that make `gpu-vllm-g5g-2b` hard: x86_64 pulls the amd64 manifest, which carries SM 7.5, so the 67-minute build is gone — but Turing's 64 KiB shared memory still blocks Gemma 4's 512-wide Triton tile (98,304 > 65,536, arithmetic rather than a margin). So it is the first rig here to deliver that clamp by **patching the published image** and building a derived tag in seconds, instead of compiling vLLM. Also the runtime control for `gpu-jax-g4dn-2b` |
+| [`gpu-vllm-t4-2b`](gpu-vllm-t4-2b/) | vLLM, **pip-installed** (no docker) | **t4 — the GPU SKU** (TU104, Turing SM 7.5, 15360 MiB), attached to this GCE VM | `gemma-4-E2B-it` | Added 2026-09-17 from `gpu-vllm-g4dn-2b`'s T4 knowledge and `local-vllm-cpu-2b`'s shape. **Nothing installed, nothing served, nothing measured.** The **first `gpu` rig here with no provisioning half** — the GPU is already attached, so there is no launch, image, quota or teardown — and still `gpu` rather than `local`, because @NAMING.md decides slot 1 by who owns the machine and this is a Compute Engine VM. Slot 3 is the SKU: the instance-family spelling is an EC2 rule. **The A/B twin of `gpu-vllm-g4dn-2b`**, differing in slots 1 and 3 only, and slot 3 only in spelling — same TU104 at the same 5001 MHz, same engine, same flags carried verbatim, so the pair isolates the control plane. It is also the **third and cheapest delivery of the same Turing clamp** (67-min build → derived image → one file in site-packages) and the **least contained**: the target is the host's own vLLM and `pip install -U vllm` silently reverts it. Two host findings that are not the GPU — the vLLM already on this box is a CUDA build on **torch 2.11.0+cpu**, so `import vllm` raises `ImportError: libcudart.so.13`; and `~/.cache` is a **symlink onto a second 250 GB volume**, so the 10.25 GB checkpoint has room while a default `pip install` fails on a 3.88 GB `/tmp`. The first draft read `df /` and got both backwards |
+| [`gpu-vllm-t4-2b-w4a16`](gpu-vllm-t4-2b-w4a16/) | vLLM, **pip-installed** (no docker) | **t4** — the same T4 as `gpu-vllm-t4-2b` | `xbill9/gemma-4-E2B-it-qat-q4_0-w4a16-ct-text-emb4` | Forked from `gpu-vllm-t4-2b` 2026-09-29; **slot 5 is the only difference**. QAT W4A16 end to end — the PLE table, `embed_tokens` and an untied `lm_head` int4 as well — built by its own `repack/` tools. **Served 2026-09-29**: 2.86 GiB loaded, 1,099,362 KV tokens, 109.7 tok/s at c=1. Shares the GPU and port 8000 with its parent: one serves at a time |
+| [`gpu-vllm-t4-4b-q4w4a16emb4`](gpu-vllm-t4-4b-q4w4a16emb4/) | vLLM, **pip-installed** (no docker) | **t4** — the same T4 as `gpu-vllm-t4-2b` | `xbill9/gemma-4-E4B-it-qat-q4_0-w4a16-ct-text-emb4` | Forked from `gpu-vllm-t4-2b-w4a16` 2026-09-30; **slot 4 is the only difference**. The E4B build of the same repack (4.58 GB), same flags, E4B drafter. Nothing served or measured yet. Shares the GPU and port 8000 with both 2b T4 rigs |
+| [`gpu-vllm-t4-embed2`](gpu-vllm-t4-embed2/) | vLLM, **pip-installed** into its own user base, **pooling runner** | **t4** — the same T4 as `gpu-vllm-t4-2b` | `google/embeddinggemma-2` | **The first embedding rig**: `/v1/embeddings`, float32, text + image, Matryoshka 768/512/256/128. Forked 2026-10-07. Needs its own Triton clamp for the *encoder* attention kernel. **Measured 2026-10-07**: 1−cos ≤ 7.0e-9 against sentence-transformers, ~3.9k input tok/s at ~500-token inputs. Shares the GPU and port 8000 with the generative T4 rigs |
+| [`gpu-pytorch-g5g-2b`](gpu-pytorch-g5g-2b/) | PyTorch + transformers | g5g (Graviton2 + NVIDIA T4G, Turing SM 7.5) | `gemma-4-E2B-it` | Forked from `gpu-jax-g5g-2b` 2026-08-28. **Nothing measured.** Slot 2 is the only thing that moves, so it is the runtime A/B against the JAX rig on identical silicon. torch ships **inside** the ARM64 PyTorch DLAMI already built with `sm_75`, so unlike the JAX rig there is no pip CUDA at all |
+| [`gpu-pytorch-g4dn-2b`](gpu-pytorch-g4dn-2b/) | PyTorch + transformers | g4dn (Intel x86_64 + NVIDIA T4, Turing SM 7.5) | `gemma-4-E2B-it` | Forked from `gpu-pytorch-g5g-2b` 2026-08-29. **Nothing measured.** The fourth corner of the {jax, pytorch} x {g5g, g4dn} square. Its A/B partner `gpu-jax-g4dn-2b` has now closed the host axis (13.1 vs 13.10 tok/s, host contributes nothing), so this is the **runtime A/B on identical hardware** and the question it answers is whether the 86.9% dtype-plus-fp32-GEMV tax is Turing or XLA. Torch comes from the **x86_64 PyTorch DLAMI** (2.13 / Ubuntu 26.04), never from pip |
+| [`gpu-llamacpp-g5g-2b-q4_0`](gpu-llamacpp-g5g-2b-q4_0/) | llama.cpp (`llama-server`) | g5g (Graviton2 + NVIDIA T4G, Turing SM 7.5) | `gemma-4-E2B-it-qat-q4_0-gguf` | Scaffolded 2026-09-02 from `gpu-pytorch-g5g-2b`. **Nothing measured.** **The only rig here serving 4-bit weights on a GPU** — vLLM 0.26.0 has no `gguf` module on any platform, JAX has no GGUF reader, and transformers dequantizes to fp32 while silently dropping 35 `layer_scalar` tensors. Streams 1.407 GB/step against the PyTorch rig's measured 4.514 and frees ~6.9 GB of a 14.07 GB chip — **residency, not speed**: decode here is launch-bound, and a 3.5 GB weight cut on the JAX sibling moved throughput 0.0%. It **compiles**, because llama.cpp ships no prebuilt Linux aarch64 CUDA binary |
+| [`gpu-ollama-g5g-2b-q4_0`](gpu-ollama-g5g-2b-q4_0/) | Ollama (links llama.cpp) | g5g (Graviton2 + NVIDIA T4G, Turing SM 7.5) | `gemma4:e2b-it-qat` | Created 2026-09-02. **Nothing measured.** Same silicon, same weights and **the same engine** as the llama.cpp rig — Ollama links `libllama.so`, so slot 2 names the front end, not the decoder. The pair exists for the four differences a benchmark can still see, chief among them that **Ollama ships an aarch64 CUDA bundle with native sm_75 SASS where llama.cpp publishes none**, so this rig has no build step. Its artifact is Ollama's re-containered blob (3,349,514,112 B vs Google's 3,349,516,256, different digest), so `-q4_0` is a weaker claim here. Pins `OLLAMA_LLM_LIBRARY=cuda_v12`: the v13 bundle is **PTX-only for every arch** and JITs at load |
+| [`gpu-vllm-mi300x-2b`](gpu-vllm-mi300x-2b/) | vLLM in Docker | **mi300x — AMD Instinct MI300X VF** (CDNA 3, gfx942, 191.69 GiB) | `gemma-4-E2B-it` | Added 2026-09-16, **the first AMD rig here** and the only one whose control plane is DigitalOcean (via AMD Developer Cloud) rather than GCP or EC2 — so no `gcloud` assumption carries into it. **SERVING**, with text, thinking, tool calling and vision verified live; 9,026,017 tokens of KV at 32768, 275.45x concurrency. **Nothing benchmarked** — that figure is vLLM's own allocation report, not a rate. The finding is the image: `rocm/vllm`'s newest tag (vLLM 0.27.1.dev5) **cannot load Gemma 4 at all**, lacking `Gemma4ModelArchConfigConvertor` and raising `AmbiguousGlobalPerLayerAttributeError` on `head_dim` during config parsing, because Gemma 4 runs 256-wide heads on sliding layers and 512 on full ones. The container nightly works and the *oldest* vendor tag works; the broken one sits between them, and the pip channel vLLM's own recipe names is staler than all three. **Audio is unreachable on every ROCm image** — none ships the `vllm[audio]` extras |
+| [`gpu-vllm-mi300x-2b-q4w4a16`](gpu-vllm-mi300x-2b-q4w4a16/) | vLLM in Docker | **mi300x — AMD Instinct MI300X VF** | `xbill9/gemma-4-E2B-it-qat-q4_0-w4a16-ct-text` | Added 2026-10-02, forked from `gpu-vllm-mi300x-2b`: the QAT Q4_0 W4A16 repack of E2B, text only, the 4-bit half of an A/B pair with the bf16 rig. **Not provisioned; nothing measured.** `check_image` also requires the image to list `TritonW4A16LinearKernel` for ROCm — the only W4A16 path that fits gfx942 with bf16 activations and group 32. Study: `gpu-vllm-mi300x-31b-q4w4a16/PREREGISTRATION.md` |
+| [`gpu-vllm-mi300x-2b-q4w4a16emb4`](gpu-vllm-mi300x-2b-q4w4a16emb4/) | vLLM in Docker | **mi300x — AMD Instinct MI300X VF** | `xbill9/gemma-4-E2B-it-qat-q4_0-w4a16-ct-text-emb4` | Added 2026-10-07, forked from `gpu-vllm-mi300x-2b-q4w4a16`: the QAT W4A16 repack with the vocabulary tables and an untied `lm_head` int4, text only. One arm of the E2B data-type sweep (`gpu-vllm-mi300x-2b/DTYPE-SWEEP.md`). **Not provisioned; nothing measured** |
+| [`gpu-vllm-mi300x-2b-q4w4a16ple4`](gpu-vllm-mi300x-2b-q4w4a16ple4/) | vLLM in Docker | **mi300x — AMD Instinct MI300X VF** | `xbill9/gemma-4-E2B-it-qat-q4_0-w4a16-ct-text-ple4` | Added 2026-10-07, forked from `gpu-vllm-mi300x-2b-q4w4a16`: the QAT W4A16 repack with only the per-layer embedding table int4, text only. One arm of the E2B data-type sweep (`gpu-vllm-mi300x-2b/DTYPE-SWEEP.md`). **Not provisioned; nothing measured** |
+| [`gpu-vllm-mi300x-2b-w8a8`](gpu-vllm-mi300x-2b-w8a8/) | vLLM in Docker | **mi300x — AMD Instinct MI300X VF** | `xbill9/gemma-4-E2B-it-qat-w8a8-int8` | Added 2026-10-07, forked from `gpu-vllm-mi300x-2b-q4w4a16`: int8 W8A8 from the QAT weights, text only. One arm of the E2B data-type sweep (`gpu-vllm-mi300x-2b/DTYPE-SWEEP.md`). **Not provisioned; nothing measured** |
+| [`gpu-vllm-mi300x-2b-w8a8emb4`](gpu-vllm-mi300x-2b-w8a8emb4/) | vLLM in Docker | **mi300x — AMD Instinct MI300X VF** | `xbill9/gemma-4-E2B-it-qat-w8a8-ct-text-emb4` | Added 2026-10-07, forked from `gpu-vllm-mi300x-2b-q4w4a16`: int8 W8A8 from the QAT weights with int4 vocabulary tables, text only. One arm of the E2B data-type sweep (`gpu-vllm-mi300x-2b/DTYPE-SWEEP.md`). **Not provisioned; nothing measured** |
+| [`gpu-vllm-mi300x-2b-fp8`](gpu-vllm-mi300x-2b-fp8/) | vLLM in Docker | **mi300x — AMD Instinct MI300X VF** | `xbill9/gemma-4-E2B-it-qat-q4_0-fp8-text` | Added 2026-10-07, forked from `gpu-vllm-mi300x-2b-q4w4a16`: fp8 W8A8 (`e4m3fn` on disk) from the QAT weights, text only. One arm of the E2B data-type sweep (`gpu-vllm-mi300x-2b/DTYPE-SWEEP.md`). **Not provisioned; nothing measured** |
+| [`gpu-vllm-mi300x-2b-fp8emb4`](gpu-vllm-mi300x-2b-fp8emb4/) | vLLM in Docker | **mi300x — AMD Instinct MI300X VF** | `xbill9/gemma-4-E2B-it-qat-q4_0-fp8-text-emb4` | Added 2026-10-07, forked from `gpu-vllm-mi300x-2b-q4w4a16`: fp8 W8A8 from the QAT weights with int4 vocabulary tables, text only. One arm of the E2B data-type sweep (`gpu-vllm-mi300x-2b/DTYPE-SWEEP.md`). **Not provisioned; nothing measured** |
+| [`gpu-vllm-mi300x-31b-q4w4a16`](gpu-vllm-mi300x-31b-q4w4a16/) | vLLM in Docker | **mi300x — AMD Instinct MI300X VF** | `xbill9/gemma-4-31B-it-qat-q4_0-w4a16-ct-text` | Added 2026-10-02: the 31B repack (19.3 GB), the headline arm of the 4-bit-on-MI300X study, whose preregistration lives here. On 192 GB everything fits, so the repack has to win on speed. **Not provisioned; nothing measured** |
+| [`gpu-vllm-mi300x-31b`](gpu-vllm-mi300x-31b/) | vLLM in Docker | **mi300x — AMD Instinct MI300X VF** | `gemma-4-31B-it` | Added 2026-10-02: bf16 31B served text-only (`{"image": 0, "audio": 0}`), the control for `gpu-vllm-mi300x-31b-q4w4a16`; the two `tpu.env` files differ only in the checkpoint lines. **Not provisioned; nothing measured** |
+| [`gpu-vllm-mi300x-embed2`](gpu-vllm-mi300x-embed2/) | vLLM in Docker, **pooling server** | **mi300x — AMD Instinct MI300X VF** | `google/embeddinggemma-2` | Added 2026-10-09: EmbeddingGemma 2 on `/v1/embeddings`, bf16 text-only, alone and beside 12B fp8 on the same card. No MCP server; `embed_run.py` drives one droplet. **Measured 2026-10-09**: cosine ≥ 0.99988 against a CPU sentence-transformers reference; 828.7 req/s at 128 requests of 128 tokens |
+| [`tpu-jax-inf2-2b`](tpu-jax-inf2-2b/) | pure JAX (`jax-neuronx`) | inf2 | `gemma-4-E2B-it` | Created 2026-08-28 from `tpu-pytorch-inf2-2b` provisioning + the `gpu-jax` engine. **The serving path is NOT wired — `server.py` still deploys the vLLM-Neuron container.** Parity already measured the engine token-exact on Neuron at ~14 tok/s for the dense fp16/bf16-KV config; `inf2.xlarge` is $0.1417/hr spot avg |
+| [`local-llamacpp-1650ti-2b-q4_0`](local-llamacpp-1650ti-2b-q4_0/) | llama.cpp (`llama-server`) | **1650ti — the workstation GPU** (TU117, Turing SM 7.5, 4096 MiB) | `gemma-4-E2B-it-qat-q4_0-gguf` | Added 2026-09-03, **the first `local` rig** — no control plane, nothing provisioned, Ctrl-C is a complete teardown. **MEASURED 2026-09-03:** 73.75 tok/s single-stream decode and 1618 MiB of 4096, because `per_layer_token_embd` (58% of the file) is `TENSOR_READ_LAZY` and never reaches VRAM. End-to-end serving caps at ~45-48 tok/s: prefill does not batch, so TTFT doubles with every doubling of concurrency |
+| [`local-llamacpp-3050oem-2b-q4_0`](local-llamacpp-3050oem-2b-q4_0/) | llama.cpp (`llama-server`) `77c4540ce` | **3050oem — the desktop GPU** (GA106, Ampere SM 8.6, 8192 MiB; i7-5820K host) | `xbill9/gemma-4-E2B-it-qat-q4_0-exact-gguf` | Added 2026-10-13, forked from `local-llamacpp-1650ti-2b-q4_0`; **slot 3 is the only difference**. **MEASURED 2026-10-13:** tg128 116.14 tok/s, pp512 3,860 t/s, 1510 MiB of 8192. Flash attention on (1.07x decode), f16 KV (q8_0 is 0.93x decode). Concurrency to c=64: 358 tok/s aggregate at 512/128 (3.84x c=1), 618 at 128/512 (5.90x). Not a controlled A/B with the 1650 Ti: different host and llama.cpp commit |
+| [`local-llamacpp-3050oem-4b-q4_0`](local-llamacpp-3050oem-4b-q4_0/) | llama.cpp (`llama-server`) `77c4540ce` | **3050oem — the desktop GPU** (GA106, Ampere SM 8.6, 8192 MiB; i7-5820K host) | `xbill9/gemma-4-E4B-it-qat-q4_0-exact-gguf` | Added 2026-10-13, the E4B sister of `local-llamacpp-3050oem-2b-q4_0`; **slot 4 is the only difference**. **MEASURED 2026-10-13:** 58.2 tok/s plain, **100.3 with Google's E4B drafter** (1.72x, greedy output unchanged at 2 drafted tokens), 2,246 t/s prompt, 6,662 MiB of 8,192 at 131k context. Shares port 8080 with the E2B rig; one serves at a time |
+| [`local-llamacpp-1650ti-4b-q4_0`](local-llamacpp-1650ti-4b-q4_0/) | llama.cpp (`llama-server`) | **1650ti — the workstation GPU** (TU117, Turing SM 7.5, 4096 MiB) | `xbill9/gemma-4-E4B-it-qat-q4_0-exact-gguf` | Added 2026-09-30, **the E4B parallel of the 1650 Ti llama.cpp rig**; slot 4 is the only difference. **MEASURED 2026-09-30:** fits in 2848 MiB of 4096 because the 1.59 GB per-layer embedding table stays in the mmap; tg128 ~39.8 tok/s (0.49x E2B), 1.06x Google's E4B GGUF on decode, mean KLD from bf16 0.00103 against Google's 0.0353. Shares port 8080 with the E2B rig and cannot run beside it |
+| [`local-ollama-1650ti-2b-q4_0`](local-ollama-1650ti-2b-q4_0/) | Ollama (links llama.cpp) | **1650ti — the workstation GPU** (TU117, Turing SM 7.5, 4096 MiB) | `gemma4:e2b-it-qat` | Added 2026-09-04. **Differs from the llama.cpp rig in slot 2 and nothing else** — same card, same weights, same engine — so it is the sharpest `llamacpp`-vs-`ollama` test here. **MEASURED 2026-09-04:** end-to-end ties the sibling within 1% in all ten context cells and decode is ~3% behind. The stock tag holds **2762 MiB against 1618** — the daemon loads the 986 MB vision/audio projector unconditionally and `ollama ps` does not count it — so this rig serves `gemma4:e2b-it-qat-text`, the same blob with that layer dropped, at **1612 MiB**. That also removes a 2048-token per-slot minimum that applies only to multimodal models, letting it reach the sibling's exact 32-slot geometry, where the two agree within 4% through c=8 |
+| [`local-llamacpp-cpu-2b-q4_0`](local-llamacpp-cpu-2b-q4_0/) | llama.cpp (`llama-server`), **CPU-only build** | none — no accelerator | `gemma-4-E2B-it-qat-q4_0-gguf` | Retargeted 2026-09-15 from a byte-identical copy of `local-llamacpp-1650ti-2b-q4_0`; **slot 3 is the only difference**. `-ngl 0` and a hidden CUDA device are hardcoded, and the serve tool refuses a GPU build. **Nothing served, nothing measured** — llama.cpp is not yet built on this host and every inherited tuning value is marked UNMEASURED |
+| [`local-llamacpp-cpu-4b-q4_0`](local-llamacpp-cpu-4b-q4_0/) | llama.cpp (`llama-server`), **CPU-only build** | none — no accelerator | `xbill9/gemma-4-E4B-it-qat-q4_0-exact-gguf` | Added 2026-09-30, **the CPU arm of the E4B pair** with `local-llamacpp-1650ti-4b-q4_0`; forked from `local-llamacpp-cpu-2b-q4_0` with slot 4 the only difference. **MEASURED 2026-09-30, ABBA:** GPU 4.20x decode, 3.84x prefill, 3.96x end-to-end, within a few percent of the E2B pair; E4B runs at ~0.5x E2B on both devices |
+| [`local-llamacpp-i71360p-2b-q4_0`](local-llamacpp-i71360p-2b-q4_0/) | llama.cpp (`llama-server`) `fc07d781e`, **CPU-only build** | **i71360p — the CPU part** (i7-1360P, 4 P + 8 E cores, AVX2 + AVX-VNNI, no discrete GPU) | `xbill9/gemma-4-E2B-it-qat-q4_0-exact-gguf` | Added 2026-09-29, code forked from `local-llamacpp-cpu-2b-q4_0`, which is pinned to an i7-10750H in another machine; **slot 3 names the CPU so the two hosts cannot share a name**. Serves the exact Q4_0 rebuild of Google's QAT GGUF, embeddings included. **MEASURED 2026-09-29:** 2.64 GB against Google's 3.35 GB, mean KL divergence from bf16 0.00175 against 0.0543, generation 1.069x / 1.074x Google's file in both run orders, prefill order-dependent |
+| [`local-llamacpp-i71360p-4b-q4_0`](local-llamacpp-i71360p-4b-q4_0/) | llama.cpp (`llama-server`) `fc07d781e`, **CPU-only build** | **i71360p** — same host as the E2B rig (i7-1360P, 4 P + 8 E cores, AVX2 + AVX-VNNI, no discrete GPU) | `xbill9/gemma-4-E4B-it-qat-q4_0-exact-gguf` | Added 2026-09-30, forked from `local-llamacpp-i71360p-2b-q4_0` with **slot 4 the only difference**; port 8091 so both rigs' status tools stay apart. Nothing measured on this host yet |
+| [`local-llamacpp-sdm850-2b-q4_0`](local-llamacpp-sdm850-2b-q4_0/) | llama.cpp (`llama-server`) `23b0202a1`, **CPU-only build** | **sdm850 — the CPU part** (Snapdragon 850, 4 Gold + 4 Silver Kryo 385, aarch64, no dot product; Lenovo Yoga C630, fanless) | `xbill9/gemma-4-E2B-it-qat-q4_0-exact-gguf` | Added 2026-10-11, code forked from `local-llamacpp-cpu-2b-q4_0`; the first aarch64 `local` rig. **MEASURED 2026-10-11:** decode 5.00 tok/s on the Gold cores and 2.18 on all eight, prefill 9.22 on all eight; no Q4_0 repack without dot product, so `RssAnon` is 192 MB |
+| [`local-llamacpp-sc7180p-2b-q4_0`](local-llamacpp-sc7180p-2b-q4_0/) | llama.cpp (`llama-server`) `f2cc7282c`, **CPU-only build** | **sc7180p — the CPU part** (Snapdragon 7c Gen 2, 2 Gold + 6 Silver Kryo 468, aarch64, dot product; Samsung Galaxy Book Go, fanless, 3.4 GiB) | `xbill9/gemma-4-E2B-it-qat-q4_0-exact-gguf` | Added 2026-10-11, forked from `local-llamacpp-sdm850-2b-q4_0`. **MEASURED 2026-10-11:** decode 8.33 tok/s on the 2 Gold cores and 5.17 on all eight, prefill 46.68 on all eight; the dotprod Q4_0 repack holds 1.44 GB `RssAnon`, so memory, not compute, is the ceiling |
+| [`local-jax-cpu-2b`](local-jax-cpu-2b/) | pure JAX on the local **CPU** | none (`JAX_PLATFORMS=cpu`) | `gemma-4-E2B-it` | Forked from `gpu-jax-g4dn-2b` 2026-08-29. **Nothing measured** — every throughput figure in its inherited prose was measured on a T4G |
+| [`local-pytorch-cpu-2b`](local-pytorch-cpu-2b/) | PyTorch + transformers on the local **CPU** | none — no accelerator | `gemma-4-E2B-it` | Retargeted 2026-09-04 from what was a verbatim copy of `gpu-jax-g4dn-2b` (it contained no PyTorch at all), and **served the same day: 4.853 tok/s, load 3.1 s**. The reference implementation, and the runtime control for `local-jax-cpu-2b`. **Peak RSS is 5.71 GB of a 10.25 GB checkpoint** — safetensors mmaps and the PLE is a gather, so transformers gets llama.cpp's lazy-PLE behaviour for free from the page cache. Size it from the file, never from RSS |
+| [`local-vllm-cpu-2b`](local-vllm-cpu-2b/) | vLLM, **CPU backend** | none — no accelerator | `gemma-4-E2B-it` | Retargeted 2026-09-04 from what was a verbatim copy of `gpu-jax-g4dn-2b`. **Has served nothing; the budget is close rather than closed.** The w4a16 checkpoint is 8.32 GB (MEASURED), needing 10.46 GB against ~9.3 GB free on a 16.42 GB machine — short by headroom, not by hardware. Three pessimistic claims in the first version were corrected: no fp32 upcast on x86, AVX2 is a first-class vLLM build target, and w4a16 saves 19% not 75%. The serve tool still refuses while over budget, because exceeding host RAM is accepted and paid for in swap rather than raising. It is the runtime control for `local-jax-cpu-2b`, which does fit |
+
+**Artifact rigs** — measurements and findings only. No `server.py`, no MCP server, no deployment
+path. They exist so results measured on hardware no serving rig covers are filed under the hardware
+they came from. See [`NAMING.md`](NAMING.md#artifact-rigs--a-rig-that-serves-nothing).
+
+| Rig | Runtime | Hardware | Model | Notes |
+| --- | --- | --- | --- | --- |
+| [`tpu-jax-v6e1-12b-w4a16`](tpu-jax-v6e1-12b-w4a16/) | pure JAX | v6e-1 | `gemma-4-12B-it-qat-w4a16-ct` | 100% token parity vs the HF reference; ~29.5 ms/step flat from 1K to 8K |
+| [`tpu-jax-v6e1-26b-q4_0`](tpu-jax-v6e1-26b-q4_0/) | pure JAX | v6e-1 *(target)* | `gemma-4-26B-A4B-it-qat-q4_0-unquantized` | The only **sparse** checkpoint and the only size with no `-w4a16-ct`. **Verified on CPU; never run on a TPU** |
+| [`tpu-jax-v6e1-31b-w4a16`](tpu-jax-v6e1-31b-w4a16/) | pure JAX | v6e-1 | `gemma-4-31B-it-qat-w4a16-ct` | Measured W4A16 error, massive activations, sink reachability, XLA memory cliffs |
+| [`gpu-vllm-l4-2b-w4a16`](gpu-vllm-l4-2b-w4a16/) | vLLM | NVIDIA L4 | `gemma-4-E2B-it-qat-w4a16-ct` | 2D concurrency grid, GCE |
+| [`gpu-vllm-l4-4b-w4a16`](gpu-vllm-l4-4b-w4a16/) | vLLM | NVIDIA L4 | `gemma-4-E4B-it-qat-w4a16-ct` | 2D concurrency grid, GCE |
+| [`gpu-vllm-l4-12b-w4a16`](gpu-vllm-l4-12b-w4a16/) | vLLM | NVIDIA L4 | `gemma-4-12B-it-qat-w4a16-ct` | Four grids — Cloud Run, GCE, EC2, and an MTP build |
+| [`gpu-vllm-l4-26b-w4a16`](gpu-vllm-l4-26b-w4a16/) | vLLM | NVIDIA L4 | `gemma-4-26B-A4B-it-qat-w4a16-ct` | **That Hub id does not exist** — the reports name a local mount; see the rig |
+| [`gpu-vllm-l4-31b-w4a16`](gpu-vllm-l4-31b-w4a16/) | vLLM | NVIDIA L4 | `gemma-4-31B-it-qat-w4a16-ct` | At bf16 the 31B leaves **0 GB** for KV on an L4 |
+
+The repack sweeps (`jev-tpu`, `jev-tpu-31b`, `jev-tpu-v5e1`) file each scored arm in the rig named for its chip and exact checkpoint: 31 artifact rigs across `tpu-vllm-v5e1-*`, `gce-vllm-v6e1-*`, `gce-vllm-v6e4-*` and `gpu-vllm-l4-26b-q4w4a16`, listed in `NAMING.md`'s inventory and in `benchmarks/ROLLUP.md`.
+| [`gpu-jax-g5g-2b`](gpu-jax-g5g-2b/) | pure JAX | g5g (Graviton2 + NVIDIA T4G, Turing SM 7.5) | `gemma-4-E2B-it` | Same silicon as the vLLM G5g rig, different runtime: pip supplies CUDA, so no build, no toolkit, no Triton patch. Serves the dense reference build — the fused W4A16 Pallas kernel cannot fit Turing shared memory and is refused at startup |
+| [`gpu-jaxrust-g5g-2b`](gpu-jaxrust-g5g-2b/) | Rust-driven XLA | g5g (Graviton2 + NVIDIA T4G, Turing SM 7.5) | `gemma-4-E2B-it` | Forked from `gpu-jax-g5g-2b` 2026-08-28 to move the engine off CPython. **The runtime is chosen and the engine builds; nothing has run.** `rlx` + `rlx-gemma` on `Device::Cuda` — verified against the crate source, so the survey's first-draft claim that no Rust JAX reaches SM 7.5 on aarch64 is **withdrawn**; aarch64 itself is still unverified. `rlx-gemma` is GPL-3.0-only, so the model feature is opt-in — see `docs/rust-jax-runtime-survey.md` |
+
+The five `gpu-vllm-l4-*` rigs were migrated from `~/gemma4-tips` on 2026-08-07. That tree duplicated
+its artifacts heavily — **82 report files, 20 unique**, with directory names that misattribute models
+— so only the 10 reports that self-identify came across. Each rig's `CLAUDE.md` carries the full
+warning; do not go back to that tree and read a model off a directory name.
+
+Directory names follow a four-slot scheme — `<platform>-<runtime>-<hardware>-<model>` — plus an
+optional fifth slot naming the weight **encoding** when it isn't the reference build.
+**[`NAMING.md`](NAMING.md) is the spec**: it defines the permitted value for every slot, the rules for adding
+or renaming a rig, and the separate date-first scheme used for benchmark artifacts. Read it before naming
+anything.
+
+The name is documentation, not configuration. A rig's authoritative values live in its `tpu.env`
+(`MODEL_NAME`, `ACCELERATOR_TYPE`, `TENSOR_PARALLEL_SIZE`) and siblings spell them inconsistently — v5e is
+`v5litepod-1` to gcloud in one rig and `v5e-1` in another. **Never copy a slot value into a CLI flag.**
+
+## Installing a rig as a Claude Code plugin
+
+Three of the rigs ship their skill and their MCP server as an installable plugin:
+
+```
+/plugin marketplace add xbill9/gemma4-dev
+```
+
+then install `tpu-jax-v5e1-2b`, `tpu-pytorch-v5e1-12b`, or `tpu-pytorch-v5e1-2b`.
+`tpu-vllm-v5e1-2b` is not packaged as a plugin — use it directly.
+
+Everything a rig installs into a shared namespace is named after the rig, for the same reason: the plugin,
+the MCP server (`tpu-jax-v5e1-2b`), and the skill (`tpu-jax-v5e1-2b-management`). The skills previously were
+all called `tpu-management`, and `make skill-install` `rm -rf`s its destination — so installing a second rig
+silently replaced the first. See `NAMING.md` for the full table and the override variables.
+
+## Working in a rig
+
+Everything is per-rig; there is no top-level build. `cd` into a rig first — each one carries its own
+`CLAUDE.md` documenting its commands, conventions, and gotchas.
+
+```bash
+cd tpu-jax-v5e1-2b
+make install     # pip install -r requirements.txt
+make test        # unittest, not pytest
+make lint        # ruff
+```
+
+Common to every rig:
+
+- **Python 3.13**, plain `pip`, no lockfile. **No virtualenvs** — use the system `python3`; if dependencies
+  are missing, report the `pip install -r requirements.txt` command rather than creating a venv.
+- **`unittest`, never pytest.** Keep unit tests offline: mock the cloud, subprocess, and network boundaries.
+- **`ruff`** as both linter and formatter. No black.
+- Auth needs **both** `gcloud auth login` (for the `gcloud` subprocess calls) and
+  `gcloud auth application-default login` (ADC, for the Secret Manager client).
+- `set_env.sh` must be **sourced**, not executed. `init.sh` is a one-time bootstrap that blocks on `read` in
+  its error path — don't run it non-interactively.
+
+## Two things that will mislead you
+
+**Benchmark numbers are not from the rig they sit in.** A report's hardware suffix records the hardware
+*measured*, not the rig hosting the file. All four rigs carry a `v6e-1` report despite being v5e-1 rigs —
+copies travelled with the forks. Never infer a rig's hardware from a benchmark filename.
+
+**Several files are generated; edit the source, not the snapshot.** `make skill` / `refresh_skill.py`
+regenerate the skill snapshots under `.claude/skills/` and `skills/`, and `make tools` regenerates
+`GemmaTools.md` from the `@mcp.tool()` decorators in `server.py`. Hand-edits to a generated file are lost on
+the next refresh.
+
+## License
+
+**Apache-2.0** — see [`LICENSE`](LICENSE). That covers every rig in this repo, with one
+carve-out.
+
+**`gpu-jaxrust-g5g-2b/rust/` is different when built with the `gemma` feature.** It links
+`rlx-gemma`, which is **GPL-3.0-only** at 0.2.11 and has no later release — `rlx` itself
+relicensed to MIT/Apache-2.0 at 0.2.14 but the model crate did not follow. GPLv3 accepts
+Apache-2.0 code; the reverse does not hold, so a **binary** built with `--features gemma` is a
+GPLv3 combined work and must ship its corresponding source under GPLv3.
+
+Three things that follow, and the first two are why nothing is owed today:
+
+- **Publishing this source is not distributing a combined work.** `rlx-gemma` is fetched by
+  cargo on the builder's machine; it is not vendored here.
+- **GPLv3 has no network clause** — that is AGPL. Serving the endpoint publicly triggers
+  nothing. The obligation attaches when you hand someone a **binary**: a release artifact, a
+  container image, an AMI.
+- **The `gemma` cargo feature is the license boundary**, not just a build switch. Built
+  `--no-default-features --features cuda`, the binary links no GPL code — it starts, reports the
+  device, and refuses generation naming the flag.
+
+Everything else in `rust/` — `gemma4-engine`'s own code and `gemma4-geometry` — is Apache-2.0
+like the rest of the repo.

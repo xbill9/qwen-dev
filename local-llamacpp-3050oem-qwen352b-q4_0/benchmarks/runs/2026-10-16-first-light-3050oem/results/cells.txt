@@ -1,0 +1,5 @@
+qwen-fa1 flags=[-fa 1 -ctk f16 -ctv f16 -t 6] start(C,MHz,W)=33,367,30.02 end=47,1897,113.80
+gemma-fa1 flags=[-fa 1 -ctk f16 -ctv f16 -t 6 -ot per_layer_token_embd\.weight=CUDA0] start(C,MHz,W)=36,210,21.94 end=48,1890,93.73
+qwen-fa0 flags=[-fa 0 -ctk f16 -ctv f16 -t 6] start(C,MHz,W)=39,210,16.93 end=53,1912,115.48
+qwen-fa1-rep flags=[-fa 1 -ctk f16 -ctv f16 -t 6] start(C,MHz,W)=40,210,15.70 end=50,1912,111.68
+gemma-fa1-rep flags=[-fa 1 -ctk f16 -ctv f16 -t 6 -ot per_layer_token_embd\.weight=CUDA0] start(C,MHz,W)=40,210,15.76 end=52,1912,95.26

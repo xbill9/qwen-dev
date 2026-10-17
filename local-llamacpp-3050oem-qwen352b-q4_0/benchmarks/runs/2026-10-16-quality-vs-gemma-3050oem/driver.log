@@ -1,0 +1,9 @@
+12:16:49 gpu=38, 210 MHz BEGIN 1c27608baba124b5 version: 0.7.0-dev (build 11699, commit 7182ef71e)
+12:16:52 gpu=40, 1912 MHz server up: 1830 MiB
+12:16:53 gpu=40, 1912 MHz START suite
+12:23:22 gpu=60, 1890 MHz END suite rc=0
+12:23:22 gpu=60, 1890 MHz START gsm8k
+13:01:36 gpu=70, 1882 MHz END gsm8k rc=0 {"task": "gsm8k", "max_tokens": 2048, "n": 1319, "right": 980, "accuracy": 0.743, "errors": 0, "truncated": 100, "wall_s": 2294.0}
+13:01:36 gpu=70, 1882 MHz START bfcl
+13:04:52 gpu=67, 1882 MHz END bfcl rc=0 {"task": "bfcl_simple", "max_tokens": 512, "n": 400, "right": 284, "accuracy": 0.71, "errors": 0, "truncated": 13, "wall_s": 195.6}
+13:04:53 gpu=60, 1890 MHz DONE

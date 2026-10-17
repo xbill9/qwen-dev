@@ -1,0 +1,29 @@
+{
+ "tag": "hf-bf16",
+ "test": "hf-bf16",
+ "prompts": 65,
+ "same_chosen_label": 61,
+ "same_top1_token": 59,
+ "label_p_diff_median": 0.012848781513848995,
+ "label_p_diff_max": 0.5634173528293047,
+ "top5_logprob_diff_median": 0.12442827224731445,
+ "top5_logprob_diff_max": 2.982736110687256,
+ "label_disagreements": [
+  [
+   "massive-en-US",
+   "massive-10213"
+  ],
+  [
+   "massive-en-US",
+   "massive-10256"
+  ],
+  [
+   "massive-en-US",
+   "massive-10292"
+  ],
+  [
+   "summeval-consistency",
+   "summeval-consistency-cnn-test-a02e362c5b8f049848ce718b37b96117485461cf-10"
+  ]
+ ]
+}

@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "tpu-2B-v5e1-devops-agent": {
+      "command": "./mcp-run.sh",
+      "args": [],
+      "env": {}
+    }
+  }
+}
