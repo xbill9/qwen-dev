@@ -35,3 +35,4 @@ Cross-rig comparison lives in the monorepo root `benchmarks/ROLLUP.md`.
 | `2026-10-14-drafter-formats-1650ti` | 28 | 0 | 0 | yes |
 | `2026-10-14-drafter-gaps-1650ti` | 46 | 0 | 0 | yes |
 | `2026-10-15-drafter-load-1650ti` | 124 | 0 | 0 | yes |
+| `2026-10-17-quality-vs-qwen-1650ti` | 31 | 1 | 0 | yes |

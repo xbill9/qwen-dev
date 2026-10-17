@@ -532,6 +532,14 @@ sweep **need different servers**:
 Get this wrong and the cells do not error — they queue, and the harness faithfully reports the
 queue as the hardware's throughput.
 
+## Answer quality on this card, against Qwen3.5-2B (2026-10-17)
+
+`benchmarks/runs/2026-10-17-quality-vs-qwen-1650ti/`: the exact QAT Q4_0 file on llama.cpp `7182ef71e`, the
+Qwen runs' binary and flags (`-c 32768 --parallel 8`, no drafter), `per_layer_token_embd` on the host. Suite
+0.681, GSM8K 0.901, BFCL 0.917, level with the 3050 run (0.683 / 0.898 / 0.925, every range across zero).
+On one card it leads Qwen3.5-2B bf16 by 19.3 / 9.4 / 15.5 points and Qwen Q4_0 by 25.1 / 16.7 / 23.0, within
+1.5 points of the gaps measured across the two cards.
+
 ## Conventions
 
 - Tests are `unittest`, never pytest: `python3 -m unittest discover -s tests -v`.

@@ -1,0 +1,9 @@
+08:48:30 gpu=41, 300 MHz BEGIN e2b 419db9a6bf3bc15d version: 0.7.0-dev (build 909, commit 7182ef7)
+08:48:37 gpu=43, 1395 MHz server up: 1710 MiB
+08:48:38 gpu=43, 1395 MHz START suite
+09:47:36 gpu=55, 1035 MHz END suite rc=0
+09:47:36 gpu=55, 1035 MHz START gsm8k
+10:39:42 gpu=58, 1860 MHz END gsm8k rc=0 {"task": "gsm8k", "max_tokens": 2048, "n": 1319, "right": 1188, "accuracy": 0.9007, "errors": 0, "truncated": 3, "wall_s": 3125.6}
+10:39:42 gpu=58, 1860 MHz START bfcl
+10:44:27 gpu=58, 1860 MHz END bfcl rc=0 {"task": "bfcl_simple", "max_tokens": 512, "n": 400, "right": 367, "accuracy": 0.9175, "errors": 0, "truncated": 0, "wall_s": 285.2}
+10:44:29 gpu=56, 1035 MHz DONE e2b
