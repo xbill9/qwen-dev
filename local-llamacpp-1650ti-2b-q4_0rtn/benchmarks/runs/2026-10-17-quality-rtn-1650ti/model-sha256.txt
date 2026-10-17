@@ -1,0 +1,2 @@
+3663dbcfc2000c4079df9b1225e291441cd8363dffdfe1c7260f6fc8f64348d7  /home/xbill/models/gemma-4-E2B-it-gguf/gemma-4-E2B-it-bf16.gguf
+c96dec27a6e5d4ec78d0dec528db46dee432a02adf0df1de6dffa35a147c41ba  /home/xbill/models/gemma-4-E2B-it-gguf/gemma-4-E2B-it-Q4_0.gguf

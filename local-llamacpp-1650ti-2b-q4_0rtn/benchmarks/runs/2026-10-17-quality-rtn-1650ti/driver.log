@@ -1,0 +1,12 @@
+10:54:07 gpu=60, 1860 MHz BEGIN convert /home/xbill/.cache/huggingface/hub/models--google--gemma-4-E2B-it/snapshots/3e22461f65e89153144f8adb70e3b8c2cc9845a7/
+10:55:13 gpu=50, 300 MHz END convert rc=0
+10:55:40 gpu=51, 300 MHz END quantize rc=0
+10:56:06 gpu=48, 300 MHz BEGIN e2b-rtn c96dec27a6e5d4ec version: 0.7.0-dev (build 909, commit 7182ef7)
+10:56:10 gpu=49, 1440 MHz server up: 1838 MiB
+10:56:11 gpu=49, 1440 MHz START suite
+11:54:40 gpu=54, 1035 MHz END suite rc=0
+11:54:41 gpu=54, 1035 MHz START gsm8k
+12:54:11 gpu=58, 1860 MHz END gsm8k rc=0 {"task": "gsm8k", "max_tokens": 2048, "n": 1319, "right": 1162, "accuracy": 0.881, "errors": 0, "truncated": 4, "wall_s": 3570.4}
+12:54:11 gpu=58, 1860 MHz START bfcl
+12:59:14 gpu=57, 1860 MHz END bfcl rc=0 {"task": "bfcl_simple", "max_tokens": 512, "n": 400, "right": 358, "accuracy": 0.895, "errors": 0, "truncated": 0, "wall_s": 302.7}
+12:59:16 gpu=55, 1035 MHz DONE e2b-rtn
