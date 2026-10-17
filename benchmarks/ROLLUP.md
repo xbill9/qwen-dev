@@ -249,6 +249,8 @@ to a complete run if you only read the directory name, so completeness is counte
 | local-llamacpp-1650ti-2b-q4_0 | `2026-10-14-drafter-formats-1650ti` | 28 | 0 | 0 | yes | **no** |
 | local-llamacpp-1650ti-2b-q4_0 | `2026-10-14-drafter-gaps-1650ti` | 46 | 0 | 0 | yes | **no** |
 | local-llamacpp-1650ti-2b-q4_0 | `2026-10-15-drafter-load-1650ti` | 124 | 0 | 0 | yes | **no** |
+| local-llamacpp-1650ti-2b-q4_0 | `2026-10-17-quality-vs-qwen-1650ti` | 31 | 1 | 0 | yes | **no** |
+| local-llamacpp-1650ti-2b-q4_0rtn | `2026-10-17-quality-rtn-1650ti` | 33 | 1 | 0 | yes | **no** |
 | local-llamacpp-1650ti-4b-q4_0 | `2026-09-30-concurrency-1650ti` | 38 | 0 | 0 | yes | **no** |
 | local-llamacpp-1650ti-4b-q4_0 | `2026-09-30-exact-gguf-e4b-1650ti` | 18 | 1 | 0 | yes | **no** |
 | local-llamacpp-1650ti-4b-q4_0 | `2026-09-30-paired-sweep-1650ti` | 14 | 0 | 0 | yes | **no** |
@@ -260,6 +262,8 @@ to a complete run if you only read the directory name, so completeness is counte
 | local-llamacpp-1650ti-qwen352b-q4_0 | `2026-10-16-first-light-1650ti` | 23 | 12 | 0 | yes | **no** |
 | local-llamacpp-1650ti-qwen352b-q4_0 | `2026-10-16-parity-crosshost-1650ti` | 9 | 2 | 0 | yes | **no** |
 | local-llamacpp-1650ti-qwen352b-q4_0 | `2026-10-16-quality-1650ti` | 31 | 1 | 0 | yes | **no** |
+| local-llamacpp-1650ti-qwen352b-q4_0 | `2026-10-17-quality-mtp-1650ti` | 14 | 1 | 0 | yes | **no** |
+| local-llamacpp-1650ti-qwen352b-q4_0 | `2026-10-17-spec-mtp-vs-gemma-1650ti` | 15 | 1 | 0 | yes | **no** |
 | local-llamacpp-3050oem-2b-q4_0 | `2026-10-13-concurrency-3050oem` | 15 | 0 | 0 | yes | **no** |
 | local-llamacpp-3050oem-2b-q4_0 | `2026-10-13-first-light-3050oem` | 19 | 12 | 0 | yes | **no** |
 | local-llamacpp-3050oem-2b-q4_0 | `2026-10-13-long-context-3050oem` | 11 | 0 | 0 | yes | **no** |
@@ -557,10 +561,11 @@ to a complete run if you only read the directory name, so completeness is counte
 | gpu-vllm-t4-4b-q4w4a16emb4 | 1 | 1 |
 | gpu-vllm-t4-embed2 | 1 | 4 |
 | local-jax-cpu-2b | 0 | 1 |
-| local-llamacpp-1650ti-2b-q4_0 | 6 | 15 |
+| local-llamacpp-1650ti-2b-q4_0 | 6 | 16 |
+| local-llamacpp-1650ti-2b-q4_0rtn | 0 | 1 |
 | local-llamacpp-1650ti-4b-q4_0 | 2 | 5 |
 | local-llamacpp-1650ti-qwen352b | 0 | 3 |
-| local-llamacpp-1650ti-qwen352b-q4_0 | 0 | 3 |
+| local-llamacpp-1650ti-qwen352b-q4_0 | 0 | 5 |
 | local-llamacpp-3050oem-2b-q4_0 | 0 | 18 |
 | local-llamacpp-3050oem-4b-q4_0 | 0 | 3 |
 | local-llamacpp-3050oem-qwen352b | 0 | 2 |

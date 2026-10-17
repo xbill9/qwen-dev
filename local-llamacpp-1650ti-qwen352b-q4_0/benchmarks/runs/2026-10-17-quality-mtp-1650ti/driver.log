@@ -1,0 +1,7 @@
+12:59:19 gpu=54, 300 MHz BEGIN qwen-mtp bd99d5aec3cbe960 version: 0.7.0-dev (build 909, commit 7182ef7)
+12:59:24 gpu=54, 1320 MHz server up: 2122 MiB
+12:59:24 gpu=54, 1320 MHz START gsm8k
+14:09:37 gpu=57, 1860 MHz END gsm8k rc=0 {"task": "gsm8k", "max_tokens": 2048, "n": 1319, "right": 987, "accuracy": 0.7483, "errors": 0, "truncated": 94, "wall_s": 4213.3}
+14:09:38 gpu=57, 1860 MHz START bfcl
+14:19:48 gpu=58, 1860 MHz END bfcl rc=0 {"task": "bfcl_simple", "max_tokens": 512, "n": 400, "right": 279, "accuracy": 0.6975, "errors": 0, "truncated": 11, "wall_s": 609.8}
+14:19:49 gpu=57, 1860 MHz DONE qwen-mtp

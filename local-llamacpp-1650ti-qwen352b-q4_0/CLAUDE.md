@@ -63,8 +63,20 @@ as long as on the 3050, with the card below its first-light clocks.
 run on the CPU; 20.22 tok/s decode (0.24x this file), prefill 0.96x, 3207 MiB at `-c 8192`. Its logits
 match the 3050 host's bf16 on all 65 parity prompts.
 
-**Not measured here:** concurrency, long context, q8_0 KV, Qwen's MTP
-head as a drafter (1.15x greedy on the 3050).
+**Against Gemma E2B on this card, 2026-10-17**: on one binary and flags Gemma's
+QAT Q4_0 leads this file by 25.1 / 16.7 / 23.0 points and the bf16 file by
+19.3 / 9.4 / 15.5 (`../local-llamacpp-1650ti-2b-q4_0/benchmarks/runs/2026-10-17-quality-vs-qwen-1650ti`);
+Gemma rounded without QAT still leads by 20.2 / 14.7 / 20.7
+(`../local-llamacpp-1650ti-2b-q4_0rtn/benchmarks/runs/2026-10-17-quality-rtn-1650ti`).
+
+**MTP head as a drafter** (`benchmarks/runs/2026-10-17-spec-mtp-vs-gemma-1650ti`,
+`.../2026-10-17-quality-mtp-1650ti`): one request at a time, 1 drafted token
+gives 1.107x greedy (91.0 tok/s) and 1.052x sampled, greedy text identical;
+Gemma's drafter reaches 92.1. At `--parallel 8` it leaves GSM8K and BFCL level
+and makes each task 1.08–1.09x slower, 90.1% of drafts accepted. Not served:
+`SPEC_DRAFT_MODEL` stays empty.
+
+**Not measured here:** concurrency sweeps, long context, q8_0 KV.
 
 ## Inherited and still true here
 
