@@ -18,8 +18,9 @@ context. Write-up in `benchmarks/runs/2026-10-16-first-light-1650ti/REPORT.md`.
 | Encoding | `q4_0` — llama-quantize's standard Q4_0: matrices Q4_0, tied embedding Q6_K, no imatrix, no QAT |
 
 Forked from [`local-llamacpp-3050oem-qwen352b-q4_0`](../local-llamacpp-3050oem-qwen352b-q4_0/):
-same model, runtime and serving flags; the card is the difference. Answer quality was
-measured there.
+same model, runtime and serving flags; the card is the difference. Answer quality on this
+card matches the 3050's: suite 0.430, GSM8K 0.734, BFCL 0.688 (3050: 0.422 / 0.743 / 0.710), and the
+bf16 file 0.488 / 0.807 / 0.762 (`benchmarks/runs/2026-10-16-quality-1650ti/`).
 
 ## Quick start
 

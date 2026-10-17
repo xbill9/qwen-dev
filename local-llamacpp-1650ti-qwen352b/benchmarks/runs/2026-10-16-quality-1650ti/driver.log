@@ -1,0 +1,9 @@
+22:52:52 gpu=55, 300 MHz BEGIN bf16 ecbfdc766ca114c2 version: 0.7.0-dev (build 909, commit 7182ef7)
+22:53:04 gpu=55, 1860 MHz server up: 3622 MiB
+22:53:05 gpu=55, 1860 MHz START suite
+23:48:45 gpu=59, 1035 MHz END suite rc=0
+23:48:45 gpu=59, 1035 MHz START gsm8k
+02:55:17 gpu=60, 1860 MHz END gsm8k rc=0 {"task": "gsm8k", "max_tokens": 2048, "n": 1319, "right": 1064, "accuracy": 0.8067, "errors": 0, "truncated": 52, "wall_s": 11192.1}
+02:55:17 gpu=60, 1860 MHz START bfcl
+03:12:47 gpu=60, 1860 MHz END bfcl rc=0 {"task": "bfcl_simple", "max_tokens": 512, "n": 400, "right": 305, "accuracy": 0.7625, "errors": 0, "truncated": 5, "wall_s": 1049.3}
+03:12:49 gpu=59, 1035 MHz DONE bf16

@@ -51,17 +51,19 @@ r=5, Qwen and Gemma E2B alternating on one binary (`7182ef7`, sm_75):
   this card serves 8,192.
 - One sanity chat ("what is a TPU?") came back fluent and wrong, as on the sister.
 
-**Answer quality was measured on the sister, not here**: suite 0.422, GSM8K
-0.743, BFCL 0.710 against Gemma E2B's 0.683 / 0.898 / 0.925
-(`../local-llamacpp-3050oem-qwen352b-q4_0/benchmarks/runs/2026-10-16-quality-vs-gemma-3050oem/`).
-The cross-host logit check above is the evidence that those scores carry over;
-it is not a score.
+**Answer quality on this card matches the sister's**
+(`benchmarks/runs/2026-10-16-quality-1650ti/`, both files, same flags as the
+3050 runs): Q4_0 suite 0.430, GSM8K 0.734, BFCL 0.688 against the 3050's
+0.422 / 0.743 / 0.710, only the suite's +0.007 clear of zero; bf16 0.488 /
+0.807 / 0.762 against 0.488 / 0.798 / 0.765. Q4_0 costs 5.8–7.5 points per
+task; Gemma E2B (3050) leads Q4_0 by 25.3 / 16.4 / 23.7. Runs took 1.7–6.9x
+as long as on the 3050, with the card below its first-light clocks.
 
 **bf16 arm** (`../local-llamacpp-1650ti-qwen352b/`): does not fit this card whole, so 6 of 24 blocks
 run on the CPU; 20.22 tok/s decode (0.24x this file), prefill 0.96x, 3207 MiB at `-c 8192`. Its logits
 match the 3050 host's bf16 on all 65 parity prompts.
 
-**Not measured here:** quality, concurrency, long context, q8_0 KV, Qwen's MTP
+**Not measured here:** concurrency, long context, q8_0 KV, Qwen's MTP
 head as a drafter (1.15x greedy on the 3050).
 
 ## Inherited and still true here

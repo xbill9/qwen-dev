@@ -18,4 +18,6 @@ Runs:
 - `benchmarks/runs/2026-10-16-parity-crosshost-1650ti/` — same label as the 3050 host's bf16 on all 65
   prompts, median probability gap 0.0027; 62 of 65 match fp32, as on the 3050.
 
-Answer quality was scored on the 3050 only (suite 0.488, GSM8K 0.798, BFCL 0.765).
+- `benchmarks/runs/2026-10-16-quality-1650ti/` — suite 0.488, GSM8K 0.807, BFCL 0.762 with 6 blocks on the
+  CPU, against 0.488 / 0.798 / 0.765 on the 3050 (no range clear of zero); 5.8–7.5 points above Q4_0 on this
+  card. The comparison lives in the Q4_0 rig's run of the same name.
