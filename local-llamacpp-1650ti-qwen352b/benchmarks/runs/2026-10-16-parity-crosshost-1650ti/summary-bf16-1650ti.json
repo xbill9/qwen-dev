@@ -1,0 +1,25 @@
+{
+ "tag": "bf16-1650ti",
+ "test": "llama",
+ "prompts": 65,
+ "same_chosen_label": 62,
+ "same_top1_token": 60,
+ "label_p_diff_median": 0.001010567023860931,
+ "label_p_diff_max": 0.557713115351468,
+ "top5_logprob_diff_median": 0.007801532745361328,
+ "top5_logprob_diff_max": 3.313514232635498,
+ "label_disagreements": [
+  [
+   "massive-en-US",
+   "massive-10213"
+  ],
+  [
+   "massive-en-US",
+   "massive-10256"
+  ],
+  [
+   "massive-en-US",
+   "massive-10292"
+  ]
+ ]
+}

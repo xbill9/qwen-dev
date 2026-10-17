@@ -57,6 +57,10 @@ r=5, Qwen and Gemma E2B alternating on one binary (`7182ef7`, sm_75):
 The cross-host logit check above is the evidence that those scores carry over;
 it is not a score.
 
+**bf16 arm** (`../local-llamacpp-1650ti-qwen352b/`): does not fit this card whole, so 6 of 24 blocks
+run on the CPU; 20.22 tok/s decode (0.24x this file), prefill 0.96x, 3207 MiB at `-c 8192`. Its logits
+match the 3050 host's bf16 on all 65 parity prompts.
+
 **Not measured here:** quality, concurrency, long context, q8_0 KV, Qwen's MTP
 head as a drafter (1.15x greedy on the 3050).
 

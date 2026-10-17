@@ -1,0 +1,6 @@
+cpu2 status=failed flags=[-ngl 99 -ot blk\.(22|23)\.=CPU] start(C,MHz,W)=47,300,2.51 end=49,1875,16.82
+cpu4 status=failed flags=[-ngl 99 -ot blk\.(20|21|22|23)\.=CPU] start(C,MHz,W)=49,1875,16.82 end=50,1875,18.40
+cpu6 status=ok flags=[-ngl 99 -ot blk\.(18|19|20|21|22|23)\.=CPU] start(C,MHz,W)=50,1875,17.07 end=62,1860,18.03
+cpu8 status=ok flags=[-ngl 99 -ot blk\.(16|17|18|19|20|21|22|23)\.=CPU] start(C,MHz,W)=50,300,2.43 end=60,1860,17.99
+ngl20 status=ok flags=[-ngl 20] start(C,MHz,W)=50,300,2.10 end=62,1860,18.12
+q4_0 status=ok flags=[-ngl 99] start(C,MHz,W)=50,300,2.10 end=58,1860,17.76

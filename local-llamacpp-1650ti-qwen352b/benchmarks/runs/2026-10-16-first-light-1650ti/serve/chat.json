@@ -1,0 +1,36 @@
+{
+    "choices": [
+        {
+            "finish_reason": "stop",
+            "index": 0,
+            "message": {
+                "role": "assistant",
+                "content": "A TPU (Tensor Processing Unit) is a specialized hardware component designed to accelerate machine learning and deep neural network tasks by processing large amounts of data in parallel."
+            }
+        }
+    ],
+    "created": 1792197737,
+    "model": "/home/xbill/models/Qwen3.5-2B-gguf/Qwen3.5-2B-bf16.gguf",
+    "system_fingerprint": "b909-7182ef7",
+    "object": "chat.completion",
+    "usage": {
+        "completion_tokens": 33,
+        "prompt_tokens": 22,
+        "total_tokens": 55,
+        "prompt_tokens_details": {
+            "cached_tokens": 0
+        }
+    },
+    "id": "chatcmpl-p4hJc7DU9Mo0I86XgFrYSDJkhrtpqiMR",
+    "timings": {
+        "cache_n": 0,
+        "prompt_n": 22,
+        "prompt_ms": 260.672,
+        "prompt_per_token_ms": 11.848727272727274,
+        "prompt_per_second": 84.39725018413945,
+        "predicted_n": 33,
+        "predicted_ms": 1581.323,
+        "predicted_per_token_ms": 49.41634375,
+        "predicted_per_second": 20.236219924708614
+    }
+}
