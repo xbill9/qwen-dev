@@ -1,0 +1,68 @@
+{
+ "geomean_tps": {
+  "qwen/greedy/none": 82.19116666297622,
+  "qwen/greedy/draft-n1": 90.96107980242188,
+  "qwen/greedy/draft-n2": 84.31642901523549,
+  "qwen/sampled/none": 81.84662564910677,
+  "qwen/sampled/draft-n1": 86.11042916278241,
+  "qwen/sampled/draft-n2": 75.17368769055575,
+  "gemma/greedy/none": 77.94638161423607,
+  "gemma/greedy/draft-n1": 92.05514937290985,
+  "gemma/greedy/draft-n2": 83.90005531866933,
+  "gemma/sampled/none": 77.69064611791562,
+  "gemma/sampled/draft-n1": 90.65536226223611,
+  "gemma/sampled/draft-n2": 82.382316697765
+ },
+ "geomean_x": {
+  "qwen/greedy/none": 1.0,
+  "qwen/greedy/draft-n1": 1.1067014071646724,
+  "qwen/greedy/draft-n2": 1.0258575518336894,
+  "qwen/sampled/none": 1.0,
+  "qwen/sampled/draft-n1": 1.0520950433797407,
+  "qwen/sampled/draft-n2": 0.9184702129668818,
+  "gemma/greedy/none": 1.0,
+  "gemma/greedy/draft-n1": 1.1810060642519544,
+  "gemma/greedy/draft-n2": 1.0763816559683113,
+  "gemma/sampled/none": 1.0,
+  "gemma/sampled/draft-n1": 1.1668761529495224,
+  "gemma/sampled/draft-n2": 1.0603891306648239
+ },
+ "acceptance": {
+  "qwen/greedy/none": null,
+  "qwen/greedy/draft-n1": 0.7010030864197531,
+  "qwen/greedy/draft-n2": 0.5779205329526529,
+  "qwen/sampled/none": null,
+  "qwen/sampled/draft-n1": 0.602308499475341,
+  "qwen/sampled/draft-n2": 0.466006600660066,
+  "gemma/greedy/none": null,
+  "gemma/greedy/draft-n1": 0.6004439511653719,
+  "gemma/greedy/draft-n2": 0.45387700534759357,
+  "gemma/sampled/none": null,
+  "gemma/sampled/draft-n1": 0.5882352941176471,
+  "gemma/sampled/draft-n2": 0.4504324683965403
+ },
+ "same_as_none": {
+  "qwen/none": 6,
+  "qwen/draft-n1": 6,
+  "qwen/draft-n2": 0,
+  "gemma/none": 6,
+  "gemma/draft-n1": 0,
+  "gemma/draft-n2": 0
+ },
+ "repeats_identical": {
+  "qwen/none": 6,
+  "qwen/draft-n1": 6,
+  "qwen/draft-n2": 6,
+  "gemma/none": 6,
+  "gemma/draft-n1": 6,
+  "gemma/draft-n2": 6
+ },
+ "qwen_over_gemma": {
+  "greedy/none": 1.054457756227197,
+  "greedy/draft-n1": 0.9881150638726796,
+  "greedy/draft-n2": 1.0049627344700154,
+  "sampled/none": 1.0534939499007818,
+  "sampled/draft-n1": 0.9498658106256671,
+  "sampled/draft-n2": 0.9124978600243124
+ }
+}
