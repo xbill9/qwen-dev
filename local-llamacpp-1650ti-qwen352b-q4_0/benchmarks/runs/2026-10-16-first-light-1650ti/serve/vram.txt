@@ -1,0 +1,4 @@
+memory.used [MiB], memory.total [MiB]
+2951 MiB, 4096 MiB
+pid, used_gpu_memory [MiB]
+1187362, 2946 MiB

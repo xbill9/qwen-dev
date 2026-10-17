@@ -1,0 +1,95 @@
+# CLAUDE.md — local-llamacpp-1650ti-qwen352b-q4_0
+
+Guidance for working inside this rig. The siblings are not layers; nothing is
+imported across a rig boundary. Read this file before changing anything.
+
+## What this rig is
+
+`llama-server` from `ggml-org/llama.cpp`, driven directly, serving
+**Qwen/Qwen3.5-2B** (revision `15852e8c`) as a Q4_0 GGUF built here, off the
+same **GTX 1650 Ti** (TU117, sm_75, 4 GiB, no tensor cores) in the laptop
+`yogagpu` that serves `local-llamacpp-1650ti-2b-q4_0`. One process, no control
+plane, Ctrl-C is a complete teardown.
+
+**Forked 2026-10-16 from `local-llamacpp-3050oem-qwen352b-q4_0`. Slot 3 is the
+only slot that differs**: same model, runtime, llama.cpp commit (`7182ef71e`) and
+serving flags, except `HOST=127.0.0.1` as on every rig on this laptop. Against
+`local-llamacpp-1650ti-2b-q4_0` only slot 4 differs, so this card now carries a
+Qwen/Gemma pair measured on one binary.
+
+## Model — BUILT 2026-10-16 ON THIS HOST
+
+- `make download` then `make quantize`, as on the sister. **This host's file
+  hashes `bd99d5ae…`, the 3050 host's `1c27608b…`**: same size, same revision,
+  same commit, and the bf16 GGUFs differ too, so the difference enters at
+  `convert_hf_to_gguf.py`. Which bytes differ is untested. On 65 suite prompts
+  the two files pick the same label 62 times, median label-probability gap
+  0.018 against Q4_0-vs-fp32's 0.115 (`benchmarks/runs/2026-10-16-parity-crosshost-1650ti`).
+  `MODEL_SHA256` pins this host's file.
+- File contents as on the sister: 194 matrices Q4_0, tied `token_embd` Q6_K,
+  F32 norms, Qwen's MTP layer `blk.24.nextn.*` unused unless drafting.
+- No lazy tensors: everything is resident. Gemma's `per_layer_token_embd`
+  rules do not apply here.
+- `REASONING=off`; `query_model` keeps `max_tokens` 1024 for requests that turn
+  thinking on.
+
+## Measurements
+
+`benchmarks/runs/2026-10-16-first-light-1650ti/` — llama-bench pp512/pp2048/tg128,
+r=5, Qwen and Gemma E2B alternating on one binary (`7182ef7`, sm_75):
+
+| | pp512 | pp2048 | tg128 |
+| --- | ---: | ---: | ---: |
+| Qwen3.5-2B Q4_0 | 511.50 | 498.82 | **85.26** |
+| Gemma 4 E2B exact Q4_0 | 358.74 | 330.99 | 81.17 |
+| Qwen / Gemma | 1.426x | 1.507x | 1.050x |
+
+- On the 3050 the same pair is 1.235x / 1.312x / 1.123x. Against the sister
+  this card runs Qwen at 0.642x decode and 0.094–0.098x prefill.
+- `-fa 1` against `-fa 0`: 1.007x prefill, 1.013x decode. On.
+- **2951 MiB of 4096** serving at `-c 131072`, no drafter. Gemma's sibling on
+  this card serves 8,192.
+- One sanity chat ("what is a TPU?") came back fluent and wrong, as on the sister.
+
+**Answer quality was measured on the sister, not here**: suite 0.422, GSM8K
+0.743, BFCL 0.710 against Gemma E2B's 0.683 / 0.898 / 0.925
+(`../local-llamacpp-3050oem-qwen352b-q4_0/benchmarks/runs/2026-10-16-quality-vs-gemma-3050oem/`).
+The cross-host logit check above is the evidence that those scores carry over;
+it is not a score.
+
+**Not measured here:** quality, concurrency, long context, q8_0 KV, Qwen's MTP
+head as a drafter (1.15x greedy on the 3050).
+
+## Inherited and still true here
+
+- Raw `/v1/completions` returns an empty completion on chat models; use
+  `/v1/chat/completions`.
+- `sweep.py`: `decode_tps` counts inter-chunk gaps, not tokens; check the prompt
+  cache was defeated via `/metrics`; llama.cpp splits `--ctx-size` across
+  `--parallel` slots. Its default `--model` and prompt text still name Gemma.
+- `start_model_server` spawns with `subprocess.Popen`, because asyncio's
+  subprocess transport kills a live child when it is torn down.
+- Port 8080 is shared with every `local-llamacpp-*` rig. Only one serves at a
+  time on a host.
+- llama.cpp logs `common_fit_params: failed to fit params ... abort` at load:
+  the automatic fit stands down because `-ngl` is set. The model serves.
+- `make build` runs at `-j6`: an unbounded CUDA build OOMs this 15 GiB laptop.
+  Never pass a bare `-j`.
+
+## Conventions
+
+- Tests are `unittest`, never pytest: `python3 -m unittest discover -s tests -v`.
+- Every subprocess call goes through `run_command(cmd: list[str])` using
+  `asyncio.create_subprocess_exec`. **Never `shell=True`.**
+- MCP tools are `async def` returning markdown strings with emoji status
+  prefixes (`✅`, `❌`, `📡`).
+- `Optional[str]`, not `X | None`.
+- Use the system `python3` and install into it. **Never create a virtualenv.**
+- `tpu.env` is the source of truth and is committed. Never add `*.env` to
+  `.gitignore`.
+
+## Canonical root references
+
+`@MODELS.md`, `@HARDWARE.md`, `@QUANTIZATION.md`, `@NAMING.md`,
+`@RIG-ANALYSIS.md`. They describe Gemma 4; nothing in them has been checked
+against Qwen yet.

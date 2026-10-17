@@ -1,0 +1,143 @@
+# local-llamacpp-1650ti-qwen352b-q4_0 — local llama.cpp rig, GTX 1650 Ti, Qwen3.5-2B q4_0.
+#
+# There are no provisioning targets here and none is owed: the card is in this
+# machine. `make serve` is the whole of what `make deploy` means elsewhere, and
+# teardown is Ctrl-C. See NAMING.md, "`local` is the absence of a control plane".
+#
+# Values come from tpu.env, which is the source of truth. ?= so a real
+# environment variable always wins.
+include tpu.env
+export
+
+SKILL_NAME ?= $(notdir $(CURDIR))-management
+LLAMA_CPP_REPO ?= https://github.com/ggml-org/llama.cpp
+
+# The card is sm_75 (Turing TU117, GTX 1650 Ti). Build for exactly that: this
+# binary is not portable and is not meant to be. FORCE_MMQ stays OFF; the 2b
+# sibling on this card measured a FORCE_MMQ build marginally worse.
+CUDA_ARCH ?= 75
+
+# NEVER pass a bare `-j`. `cmake --build -j` with no value hands make an UNBOUNDED
+# job count; llama.cpp has ~190 CUDA translation units and each nvcc forks cicc and
+# cudafe++, so an unbounded CUDA build OOMs this 15 GiB laptop (2026-09-22, dmesg
+# victims: cicc). The 2b sibling measured -j6 at a 4.0 GiB peak with no swap.
+# Override with BUILD_JOBS=N.
+BUILD_JOBS ?= 6
+
+.PHONY: all help install build download quantize test lint clean serve stop status metrics query info bench-validate
+
+all: help
+
+help:
+	@echo "========================================================="
+	@echo " local-llamacpp-1650ti-qwen352b-q4_0 — GTX 1650 Ti, Qwen3.5-2B q4_0"
+	@echo "========================================================="
+	@echo "  make install       - pip install -r requirements.txt (system python3)"
+	@echo "  make build         - build llama.cpp with CUDA (sm_$(CUDA_ARCH), -j$(BUILD_JOBS))"
+	@echo "  make download      - fetch Qwen's bf16 safetensors at MODEL_HF_REVISION"
+	@echo "  make quantize      - convert to bf16 GGUF, llama-quantize Q4_0, check MODEL_SHA256"
+	@echo "  make info          - resident-vs-lazy split, read off the artifact"
+	@echo "  make serve         - run llama-server in the foreground"
+	@echo "  make status        - is it up?"
+	@echo "  make metrics       - llama.cpp prometheus metrics (needs METRICS=1)"
+	@echo "  make query         - one chat completion against the local endpoint"
+	@echo "  make test          - offline unittest suite"
+	@echo "  make lint          - ruff on the module list below"
+	@echo "  make clean         - remove caches"
+	@echo "========================================================="
+
+install:
+	python3 -m pip install -r requirements.txt
+
+# Until 2026-09-22 this rig had NO build target and its only record of these flags
+# was the CMakeCache.txt of whatever was last built -- which is not a record, it is
+# an artifact. They live here now.
+#
+# build/, not build-cpu/: a CPU-only build on this host would go there, so the two
+# cannot be confused.
+#
+# After a toolchain change, DELETE the build dir first: a stale CMakeCache.txt keeps
+# the old compiler, and /usr/local/cuda being a symlink hides that from the cached
+# path.
+build:
+	@command -v cmake >/dev/null || { echo "cmake not found; install with: sudo apt install cmake"; exit 1; }
+	@command -v nvcc >/dev/null || { echo "nvcc not on PATH; export PATH=/usr/local/cuda/bin:\$$PATH"; exit 1; }
+	@test -d $(LLAMA_CPP_DIR) || git clone $(LLAMA_CPP_REPO) $(LLAMA_CPP_DIR)
+	cmake -S $(LLAMA_CPP_DIR) -B $(LLAMA_CPP_DIR)/build -DGGML_CUDA=ON -DCMAKE_CUDA_ARCHITECTURES=$(CUDA_ARCH) -DGGML_NATIVE=ON -DCMAKE_BUILD_TYPE=Release
+	cmake --build $(LLAMA_CPP_DIR)/build --config Release -j$(BUILD_JOBS) --target llama-server llama-bench llama-quantize
+	@echo "built at commit $$(git -C $(LLAMA_CPP_DIR) rev-parse --short HEAD) — record it as LLAMA_CPP_COMMIT in tpu.env"
+
+# Qwen publishes no GGUF of this model, so the rig builds its own: Qwen's bf16
+# safetensors at a pinned revision, converted and quantized by the llama.cpp in
+# LLAMA_CPP_DIR. Plain llama-quantize Q4_0, no imatrix, so the same commit rebuilds
+# the same bytes; MODEL_SHA256 is what 7182ef71e produced on this host on
+# 2026-10-16. The 3050 host's build at the same commit hashes differently (tpu.env),
+# so the check pins this host's file; a different llama.cpp commit or Python
+# environment may fail it.
+download:
+	python3 -c "from huggingface_hub import snapshot_download; snapshot_download('$(MODEL_NAME)', revision='$(MODEL_HF_REVISION)', local_dir='$(MODEL_HF_DIR)')"
+
+quantize:
+	@mkdir -p $(dir $(MODEL_PATH))
+	test -f $(MODEL_BF16_PATH) || python3 $(LLAMA_CPP_DIR)/convert_hf_to_gguf.py $(MODEL_HF_DIR) --outtype bf16 --outfile $(MODEL_BF16_PATH)
+	$(LLAMA_CPP_DIR)/build/bin/llama-quantize $(MODEL_BF16_PATH) $(MODEL_PATH) Q4_0
+	echo "$(MODEL_SHA256)  $(MODEL_PATH)" | sha256sum -c -
+
+info:
+	python3 inspect_gguf.py
+
+# Foreground on purpose. Ctrl-C is a complete teardown and costs nothing, so the
+# backgrounding and pid-tracking a cloud rig needs would be ceremony here. The
+# MCP server has start/stop tools for the case where you do want it detached.
+serve:
+	$(LLAMA_SERVER_BIN) \
+	  -m $(MODEL_PATH) \
+	  --host $(HOST) --port $(PORT) \
+	  -ngl $(N_GPU_LAYERS) \
+	  -c $(CONTEXT_SIZE) \
+	  -ctk $(KV_CACHE_TYPE) -ctv $(KV_CACHE_TYPE) \
+	  -fa $(FLASH_ATTENTION) \
+	  -t $(THREADS) \
+	  -tb $(THREADS_BATCH) \
+	  --parallel $(PARALLEL_SLOTS) \
+	  --reasoning $(REASONING) \
+	  $(if $(filter 1,$(METRICS)),--metrics,) \
+	  $(if $(OVERRIDE_TENSORS),-ot '$(OVERRIDE_TENSORS)',) \
+	  $(if $(SPEC_DRAFT_MODEL),-md $(SPEC_DRAFT_MODEL) --spec-type draft-mtp -ngld all --spec-draft-n-max $(SPEC_DRAFT_N_MAX),)
+
+status:
+	@curl -fsS $(ENDPOINT)/health && echo "  <- healthy" || echo "not serving at $(ENDPOINT)"
+
+# llama.cpp's own Prometheus endpoint, not ours. 501 here means the server was
+# started without --metrics, not that it is unhealthy. See tpu.env, METRICS —
+# and note it is for operational questions, NOT for the benchmark decode column.
+metrics:
+	@curl -fsS $(ENDPOINT)/metrics || echo "no /metrics — server started without --metrics (METRICS=1 in tpu.env)"
+
+# /v1/chat/completions, NOT /v1/completions: raw completions return an empty
+# string on -it checkpoints, which reads as a broken deploy and is not one.
+#
+# max_tokens is 1024 and must stay >= 512: a request that turns thinking on
+# spends tokens in reasoning_content before content gets any. Matches
+# query_model's default in server.py.
+query:
+	@curl -fsS $(ENDPOINT)/v1/chat/completions \
+	  -H 'Content-Type: application/json' \
+	  -d '{"model":"$(MODEL_NAME)","messages":[{"role":"user","content":"In one sentence, what is a TPU?"}],"max_tokens":1024}' \
+	  | python3 -m json.tool
+
+test:
+	python3 -m unittest discover -s tests -v
+
+# A NEW TOP-LEVEL MODULE IS SILENTLY UNLINTED UNTIL IT IS ADDED HERE.
+lint:
+	@command -v ruff >/dev/null || { echo "ruff not found; install with: pip install ruff"; exit 1; }
+	ruff check server.py attest.py inspect_gguf.py sweep.py tests
+	@echo "lint OK"
+
+bench-validate:
+	python3 ../benchmarks/validate.py benchmarks/runs
+
+clean:
+	rm -rf __pycache__ .ruff_cache .mypy_cache
+	find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true

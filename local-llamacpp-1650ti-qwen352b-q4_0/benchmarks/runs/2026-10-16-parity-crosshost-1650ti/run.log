@@ -1,0 +1,101 @@
+{
+ "tag": "q4_0-1650ti",
+ "test": "llama",
+ "prompts": 65,
+ "same_chosen_label": 43,
+ "same_top1_token": 47,
+ "label_p_diff_median": 0.11520576133608335,
+ "label_p_diff_max": 0.5104516587098125,
+ "top5_logprob_diff_median": 1.5894923210144043,
+ "top5_logprob_diff_max": 4.956585884094238,
+ "label_disagreements": [
+  [
+   "civil_comments",
+   "civil_comments-10693"
+  ],
+  [
+   "helpsteer2",
+   "helpsteer2-1018"
+  ],
+  [
+   "massive-de-DE",
+   "massive-10213"
+  ],
+  [
+   "massive-de-DE",
+   "massive-10256"
+  ],
+  [
+   "massive-en-US",
+   "massive-10213"
+  ],
+  [
+   "massive-en-US",
+   "massive-10256"
+  ],
+  [
+   "massive-en-US",
+   "massive-10292"
+  ],
+  [
+   "multinli",
+   "multinli-100036e"
+  ],
+  [
+   "multinli",
+   "multinli-100036n"
+  ],
+  [
+   "pubmedqa",
+   "pubmedqa-10201555"
+  ],
+  [
+   "pubmedqa",
+   "pubmedqa-10354335"
+  ],
+  [
+   "summeval-consistency",
+   "summeval-consistency-cnn-test-a02e362c5b8f049848ce718b37b96117485461cf-10"
+  ],
+  [
+   "summeval-consistency",
+   "summeval-consistency-cnn-test-a02e362c5b8f049848ce718b37b96117485461cf-11"
+  ],
+  [
+   "summeval-consistency",
+   "summeval-consistency-cnn-test-a02e362c5b8f049848ce718b37b96117485461cf-12"
+  ],
+  [
+   "summeval-relevance",
+   "summeval-relevance-cnn-test-404f859482d47c127868964a9a39d1a7645dd2e9-10"
+  ],
+  [
+   "summeval-relevance",
+   "summeval-relevance-cnn-test-404f859482d47c127868964a9a39d1a7645dd2e9-11"
+  ],
+  [
+   "summeval-relevance",
+   "summeval-relevance-cnn-test-404f859482d47c127868964a9a39d1a7645dd2e9-12"
+  ],
+  [
+   "vitaminc-dev",
+   "vitaminc-5ea2d97dc9e77c0009cda929_1"
+  ],
+  [
+   "vitaminc-dev",
+   "vitaminc-5ea2d97dc9e77c0009cda929_2"
+  ],
+  [
+   "vitaminc-dev",
+   "vitaminc-5ea2d97dc9e77c0009cda929_3"
+  ],
+  [
+   "vitaminc-dev",
+   "vitaminc-5ea2d97dc9e77c0009cda929_4"
+  ],
+  [
+   "vitaminc-dev",
+   "vitaminc-5ea2d97dc9e77c0009cdad27_1"
+  ]
+ ]
+}

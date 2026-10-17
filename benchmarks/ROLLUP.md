@@ -254,6 +254,8 @@ to a complete run if you only read the directory name, so completeness is counte
 | local-llamacpp-1650ti-4b-q4_0 | `2026-09-30-paired-sweep-1650ti` | 14 | 0 | 0 | yes | **no** |
 | local-llamacpp-1650ti-4b-q4_0 | `2026-09-30-suite-e2b-vs-e4b-1650ti` | 8 | 0 | 0 | **no** | **no** |
 | local-llamacpp-1650ti-4b-q4_0 | `2026-10-14-repeatability-1650ti` | 18 | 0 | 0 | yes | **no** |
+| local-llamacpp-1650ti-qwen352b-q4_0 | `2026-10-16-first-light-1650ti` | 23 | 12 | 0 | yes | **no** |
+| local-llamacpp-1650ti-qwen352b-q4_0 | `2026-10-16-parity-crosshost-1650ti` | 9 | 2 | 0 | yes | **no** |
 | local-llamacpp-3050oem-2b-q4_0 | `2026-10-13-concurrency-3050oem` | 15 | 0 | 0 | yes | **no** |
 | local-llamacpp-3050oem-2b-q4_0 | `2026-10-13-first-light-3050oem` | 19 | 12 | 0 | yes | **no** |
 | local-llamacpp-3050oem-2b-q4_0 | `2026-10-13-long-context-3050oem` | 11 | 0 | 0 | yes | **no** |
@@ -268,13 +270,14 @@ to a complete run if you only read the directory name, so completeness is counte
 | local-llamacpp-3050oem-2b-q4_0 | `2026-10-14-overnight-3050oem` | 3 | 0 | 0 | **no** | **no** |
 | local-llamacpp-3050oem-2b-q4_0 | `2026-10-15-concurrency-draft1-3050oem` | 15 | 0 | 0 | yes | **no** |
 | local-llamacpp-3050oem-2b-q4_0 | `2026-10-15-concurrency-drafter-kvu-3050oem` | 57 | 0 | 0 | yes | **no** |
-| local-llamacpp-3050oem-2b-q4_0 | `2026-10-15-concurrency-longmixed-3050oem` | 62 | 1 | 0 | yes | **no** |
+| local-llamacpp-3050oem-2b-q4_0 | `2026-10-15-concurrency-longmixed-3050oem` | 61 | 1 | 0 | yes | **no** |
 | local-llamacpp-3050oem-2b-q4_0 | `2026-10-15-concurrency-mixed-3050oem` | 79 | 0 | 0 | yes | **no** |
 | local-llamacpp-3050oem-2b-q4_0 | `2026-10-15-concurrency-thinking-3050oem` | 17 | 0 | 0 | yes | **no** |
 | local-llamacpp-3050oem-2b-q4_0 | `2026-10-15-queue-3050oem` | 4 | 0 | 0 | **no** | **no** |
 | local-llamacpp-3050oem-4b-q4_0 | `2026-10-13-first-light-3050oem` | 7 | 0 | 0 | yes | **no** |
-| local-llamacpp-3050oem-4b-q4_0 | `2026-10-13-quality-e2b-vs-e4b-3050oem` | 53 | 1 | 0 | yes | **no** |
+| local-llamacpp-3050oem-4b-q4_0 | `2026-10-13-quality-e2b-vs-e4b-3050oem` | 52 | 1 | 0 | yes | **no** |
 | local-llamacpp-3050oem-4b-q4_0 | `2026-10-13-spec-mtp-3050oem` | 13 | 0 | 0 | yes | **no** |
+| local-llamacpp-3050oem-qwen352b | `2026-10-16-parity-transformers-3050oem` | 12 | 3 | 0 | yes | **no** |
 | local-llamacpp-3050oem-qwen352b | `2026-10-16-quality-bf16-3050oem` | 31 | 1 | 0 | yes | **no** |
 | local-llamacpp-3050oem-qwen352b-q4_0 | `2026-10-16-first-light-3050oem` | 22 | 12 | 0 | yes | **no** |
 | local-llamacpp-3050oem-qwen352b-q4_0 | `2026-10-16-quality-vs-gemma-3050oem` | 30 | 1 | 0 | yes | **no** |
@@ -552,9 +555,10 @@ to a complete run if you only read the directory name, so completeness is counte
 | local-jax-cpu-2b | 0 | 1 |
 | local-llamacpp-1650ti-2b-q4_0 | 6 | 15 |
 | local-llamacpp-1650ti-4b-q4_0 | 2 | 5 |
+| local-llamacpp-1650ti-qwen352b-q4_0 | 0 | 2 |
 | local-llamacpp-3050oem-2b-q4_0 | 0 | 18 |
 | local-llamacpp-3050oem-4b-q4_0 | 0 | 3 |
-| local-llamacpp-3050oem-qwen352b | 0 | 1 |
+| local-llamacpp-3050oem-qwen352b | 0 | 2 |
 | local-llamacpp-3050oem-qwen352b-q4_0 | 0 | 3 |
 | local-llamacpp-cpu-2b-q4_0 | 3 | 5 |
 | local-llamacpp-cpu-4b-q4_0 | 1 | 1 |

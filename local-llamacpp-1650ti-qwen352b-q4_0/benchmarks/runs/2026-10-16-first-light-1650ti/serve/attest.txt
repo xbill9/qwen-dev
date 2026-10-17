@@ -1,0 +1,3 @@
+device=gpu · pid=1187362 · -ngl 99 · mapped: ggml-cuda, libcublas, libcuda, libcudart · /home/xbill/llama.cpp/build/bin/llama-server
+mismatch: None
+model sha256: None

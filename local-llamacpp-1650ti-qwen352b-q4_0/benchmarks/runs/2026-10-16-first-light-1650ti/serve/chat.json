@@ -1,0 +1,36 @@
+{
+    "choices": [
+        {
+            "finish_reason": "stop",
+            "index": 0,
+            "message": {
+                "role": "assistant",
+                "content": "A TPU is a specialized processor designed to handle tasks like image processing, text analysis, and data manipulation, making it ideal for tasks that require high computational power but low latency."
+            }
+        }
+    ],
+    "created": 1792197000,
+    "model": "/home/xbill/models/Qwen3.5-2B-gguf/Qwen3.5-2B-Q4_0.gguf",
+    "system_fingerprint": "b909-7182ef7",
+    "object": "chat.completion",
+    "usage": {
+        "completion_tokens": 37,
+        "prompt_tokens": 22,
+        "total_tokens": 59,
+        "prompt_tokens_details": {
+            "cached_tokens": 0
+        }
+    },
+    "id": "chatcmpl-aZnRgGtDM2wQMkck1KdoioiYG5eZ1RhQ",
+    "timings": {
+        "cache_n": 0,
+        "prompt_n": 22,
+        "prompt_ms": 134.344,
+        "prompt_per_token_ms": 6.106545454545454,
+        "prompt_per_second": 163.75870898588698,
+        "predicted_n": 37,
+        "predicted_ms": 469.563,
+        "predicted_per_token_ms": 13.043416666666666,
+        "predicted_per_second": 76.66702870541333
+    }
+}

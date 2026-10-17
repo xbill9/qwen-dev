@@ -15,4 +15,5 @@ Cross-rig comparison lives in the monorepo root `benchmarks/ROLLUP.md`.
 
 | Run | Files | Result files | Infeasible cells | REPORT.md |
 |---|---:|---:|---:|---|
+| `2026-10-16-parity-transformers-3050oem` | 12 | 3 | 0 | yes |
 | `2026-10-16-quality-bf16-3050oem` | 31 | 1 | 0 | yes |

@@ -1,0 +1,9 @@
+{
+ "prompts_in_both": 65,
+ "same_prompt_length": 65,
+ "same_chosen_label_3050_vs_1650ti": 62,
+ "label_p_diff_3050_vs_1650ti_median": 0.01841611908111386,
+ "label_p_diff_3050_vs_1650ti_max": 0.07483738908751991,
+ "same_label_as_fp32_reference_3050": 43,
+ "same_label_as_fp32_reference_1650ti": 43
+}

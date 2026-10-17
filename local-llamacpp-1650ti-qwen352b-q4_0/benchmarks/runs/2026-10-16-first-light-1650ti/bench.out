@@ -1,0 +1,5 @@
+qwen-fa1 flags=[-fa 1 -ctk f16 -ctv f16 -t 6] start(C,MHz,W)=48,300,4.22 end=56,1875,17.66
+gemma-fa1 flags=[-fa 1 -ctk f16 -ctv f16 -t 6] start(C,MHz,W)=50,300,2.04 end=57,1875,17.43
+qwen-fa0 flags=[-fa 0 -ctk f16 -ctv f16 -t 6] start(C,MHz,W)=50,300,2.02 end=58,1860,17.95
+qwen-fa1-rep flags=[-fa 1 -ctk f16 -ctv f16 -t 6] start(C,MHz,W)=50,300,2.57 end=57,1875,17.43
+gemma-fa1-rep flags=[-fa 1 -ctk f16 -ctv f16 -t 6] start(C,MHz,W)=50,300,2.15 end=59,1860,18.16
