@@ -1,0 +1,6 @@
+q4_0, RTX 3050 GSM8K: 0.7430, 100 at the limit (9 right), best case 0.8120
+q4_0, RTX 3050 BFCL: 0.7100, 79 with no tool call (0 with call-like text), best case 0.9075
+bf16, RTX 3050 GSM8K: 0.7976, 52 at the limit (2 right), best case 0.8355
+bf16, RTX 3050 BFCL: 0.7650, 48 with no tool call (0 with call-like text), best case 0.8850
+suite, 1650 Ti, all 13 subsets: n=3880 Gemma 0.681 Qwen bf16 0.488 gap -0.193
+suite, 1650 Ti, without the 3 one-sided subsets: n=3137 Gemma 0.655 Qwen bf16 0.542 gap -0.112
