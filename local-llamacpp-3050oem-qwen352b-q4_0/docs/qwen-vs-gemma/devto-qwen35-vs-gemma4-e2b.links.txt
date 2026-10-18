@@ -1,0 +1,6 @@
+# Destination URLs for the LinkedIn post. Keys are make-linkedin.py's fixed set.
+devto-gde = https://dev.to/gde/comparing-qwen-and-gemma-on-the-low-end-qwen-is-faster-without-drafting-gemma-has-better-quality-30bo
+medium    = https://xbill999.medium.com/comparing-qwen-and-gemma-on-the-low-end-qwen-is-faster-without-drafting-gemma-has-better-quality-b8ddde8fa367
+substack  = https://xbill9.substack.com/p/comparing-qwen-and-gemma-on-the-low
+repo      = https://github.com/xbill9/qwen-dev/tree/main/local-llamacpp-3050oem-qwen352b-q4_0
+linkedin  = https://www.linkedin.com/feed/update/urn:li:activity:7517690733655441408/

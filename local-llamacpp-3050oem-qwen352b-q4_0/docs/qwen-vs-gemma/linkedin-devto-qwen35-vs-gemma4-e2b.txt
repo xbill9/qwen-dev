@@ -1,0 +1,15 @@
+Comparing Qwen and Gemma on the Low End: Qwen Is Faster Without Drafting, Gemma Has Better Quality
+
+Step-by-step: serving Qwen3.5-2B with llama.cpp on an 8 GB RTX 3050 and a 4 GB GTX 1650 Ti beside Gemma 4 E2B, checking that llama.cpp runs it correctly, and measuring speed, answer quality, 4-bit rounding, QAT and drafting with Qwen's own MTP head.
+
+What is in it:
+
+- 🟢 llama.cpp runs Qwen3.5-2B correctly: identical prompts to Qwen's template, and its bf16 probabilities sit closer to float32 than transformers' bf16 does.
+- 🟢 Qwen is faster without drafting: 1.12x decode and 1.24–1.31x prefill on the RTX 3050, 1.05x and 1.43–1.51x on the GTX 1650 Ti.
+- ❌ Qwen scores lower on all three tasks: 15.5 to 26.0 points behind Gemma at 4 bits, 10.0 to 19.5 behind at bf16.
+- 🟢 The gaps hold in Qwen's favour: scoring every cut-off GSM8K reply and every tool-less BFCL reply as right still leaves Qwen behind.
+
+dev.to (Google Developer Experts): https://dev.to/gde/comparing-qwen-and-gemma-on-the-low-end-qwen-is-faster-without-drafting-gemma-has-better-quality-30bo
+Medium: https://xbill999.medium.com/comparing-qwen-and-gemma-on-the-low-end-qwen-is-faster-without-drafting-gemma-has-better-quality-b8ddde8fa367
+Substack: https://xbill9.substack.com/p/comparing-qwen-and-gemma-on-the-low
+Source: https://github.com/xbill9/qwen-dev/tree/main/local-llamacpp-3050oem-qwen352b-q4_0
