@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.11" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Comparing Qwen and Gemma on the Low End: Qwen Is Faster Without Drafting, Gemma Has Better Quality</title>
+  <meta name="description" content="Step-by-step: serving Qwen3.5-2B with llama.cpp on an 8 GB RTX 3050 and a 4 GB GTX 1650 Ti beside Gemma 4 E2B, checking that llama.cpp runs it correctly, and measuring speed, answer quality, 4-bit rounding, QAT and drafting with Qwen&#x27;s own MTP head." />
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: 1.5em;}
+    div.column{flex: auto;}
+    @media screen {
+    div.columns{gap: min(4vw, 1.5em);}
+    div.column{overflow-x: auto;}
+    }
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+  </style>
+  <style>
+    body{font-family:-apple-system,'Segoe UI',Roboto,'Liberation Sans',Arial,sans-serif;
+         font-size:18px;line-height:1.58;max-width:42em;color:#242424;}
+    h1,h2,h3,h4{font-weight:700;line-height:1.25;margin-top:1.8em;}
+    h4{font-size:1.25em;}
+    img{max-width:100%;height:auto;display:block;margin:1.6em 0;}
+    pre{background:#f7f7f7;border:1px solid #e6e6e6;border-radius:4px;
+        padding:12px 14px;overflow-x:auto;font-size:14px;line-height:1.45;}
+    code{font-family:'Liberation Mono',Menlo,Consolas,monospace;}
+    :not(pre)>code{background:#f2f2f2;padding:1px 5px;border-radius:3px;font-size:.9em;}
+    blockquote{border-left:3px solid #ddd;margin-left:0;padding-left:1em;color:#555;}
+    hr{border:0;border-top:1px solid #e6e6e6;margin:2.4em 0;}
+  </style>
+</head>
+<body>
+<p>This article provides a step by step deployment guide for Qwen3.5-2B
+to a local, desktop and laptop hosted GPU enabled system, served by
+llama.cpp beside Gemma 4 E2B on the same cards. A suite of Python MCP
+tools is built to simplify management of the llama.cpp hosted
+deployment.</p>
+<figure><img src="https://raw.githubusercontent.com/xbill9/qwen-dev/main/local-llamacpp-3050oem-qwen352b-q4_0/docs/qwen-vs-gemma/medium/img/devto-cover.9ce8fe8e.jpg" alt="Comparing Qwen and Gemma on the Low End: Qwen Is Faster Without Drafting, Gemma Has Better Quality" /></figure>
+<p><a
+href="https://github.com/xbill9/qwen-dev/tree/main/local-llamacpp-3050oem-qwen352b-q4_0">https://github.com/xbill9/qwen-dev/tree/main/local-llamacpp-3050oem-qwen352b-q4_0</a></p>
+<p><strong>Qwen3.5-2B decodes 1.12x as fast as Gemma 4 E2B on an RTX
+3050 and prefills 1.24–1.31x as fast. On three tasks, with thinking off
+for both models, Gemma answers better on every one: its 4-bit build
+leads Qwen's 4-bit build by 15.5 to 26.0 points and Qwen's unquantized
+bf16 by 10.0 to 19.5. With each model's drafter turned on, the speed
+lead disappears. The gaps survive scoring every cut-off or tool-less
+Qwen answer as right.</strong></p>
+<hr />
+<h4 id="what-is-this-project-trying-to-do">What is this project trying
+to Do?</h4>
+<p>The rigs in this repository serve Gemma 4 E2B from local hardware: an
+RTX 3050 OEM in a desktop and a GTX 1650 Ti in a laptop. Both run
+Google's quantization-aware-trained (QAT) 4-bit build, and both have
+measured scores for it on the same three tasks.</p>
+<p>The question here: what does a Qwen of the same size class give on
+the same cards? Qwen3.5-2B counts 1.943B parameters in its text GGUF.
+Everything below runs both models with the same flags and the same task
+code, and on one llama.cpp binary except where the Scope paragraph says
+otherwise.</p>
+<hr />
+<h4 id="at-this-point-you-should-have">At This Point You Should
+Have…</h4>
+<ul>
+<li>An NVIDIA GPU with a CUDA driver — here an RTX 3050 OEM (8 GB,
+Ampere, driver 615.78.08) and a GTX 1650 Ti (4 GB, Turing)</li>
+<li>llama.cpp built with CUDA — commit <code>7182ef71e</code> here</li>
+<li>Python 3 for the converter and the MCP server — the system
+<code>python3</code>, no virtualenv</li>
+<li>The repository cloned, and
+<code>local-llamacpp-3050oem-qwen352b-q4_0/</code> as your working
+directory</li>
+<li>Claude Code, or any MCP client that speaks stdio</li>
+</ul>
+<hr />
+<h4 id="the-two-models">The Two Models</h4>
+<p><img src="https://raw.githubusercontent.com/xbill9/qwen-dev/main/local-llamacpp-3050oem-qwen352b-q4_0/docs/qwen-vs-gemma/medium/img/devto-qwen35-vs-gemma4-e2b-table-1.png"
+alt="Table: Qwen3.5-2B, Gemma 4 E2B" /></p>
+<p>Only Qwen's 6 full-attention layers hold a KV cache. The 18 DeltaNet
+layers keep a fixed-size state per request, so Qwen's prefill cost grows
+more slowly with prompt length.</p>
+<hr />
+<h4 id="step-1--build-the-qwen-q4_0-file">Step 1 — Build the Qwen Q4_0
+File</h4>
+<p>Qwen publishes bf16 weights only, so the rig builds its own 4-bit
+file. <code>make quantize</code> converts the Hugging Face checkout to a
+bf16 GGUF and runs the standard <code>llama-quantize</code> Q4_0, with
+no importance matrix:</p>
+<pre class="shell"><code>python3 ~/llama.cpp/convert_hf_to_gguf.py ~/models/Qwen3.5-2B --outtype bf16 --outfile Qwen3.5-2B-bf16.gguf
+~/llama.cpp/build/bin/llama-quantize Qwen3.5-2B-bf16.gguf Qwen3.5-2B-Q4_0.gguf Q4_0</code></pre>
+<p>The result, from the rig's <code>tpu.env</code>:</p>
+<pre class="text"><code>#   convert_hf_to_gguf.py --outtype bf16   -&gt; 3,897,388,000 B, 335 tensors
+#   llama-quantize ... Q4_0 (no imatrix)   -&gt; 1,236,741,088 B
+# llama-quantize&#39;s standard Q4_0 mix: 194 matrices Q4_0 (806.4 MB), token_embd
+# Q6_K (417.2 MB, which is also the output head since it is tied), 140 F32 norms</code></pre>
+<p>This file is plain rounding from bf16. Gemma's Q4_0 file holds
+weights Google trained to sit on the 4-bit grid. Step 7 measures what
+that difference is worth.</p>
+<hr />
+<h4 id="step-2--serve-it">Step 2 — Serve It</h4>
+<p><code>make serve</code> runs llama-server with the Gemma rig's flags,
+so the two serve the same 131,072-token window:</p>
+<pre class="shell"><code>llama-server -m Qwen3.5-2B-Q4_0.gguf --host 0.0.0.0 --port 8080 -ngl 99 -c 131072 \
+  -ctk f16 -ctv f16 -fa 1 -t 6 -tb 12 --parallel 1 --reasoning off --metrics</code></pre>
+<p>Qwen3.5 thinks by default. <code>--reasoning off</code> puts answers
+in <code>content</code>, as on the Gemma rig; a request can still turn
+thinking on with
+<code>"chat_template_kwargs": {"enable_thinking": true}</code>.</p>
+<p>At the full context it uses <strong>2995 MiB of the 3050's
+8192</strong>, and 2951 MiB of the 1650 Ti's 4096. The server log shows
+the MTP layer loaded and left idle:</p>
+<pre class="text"><code>0.01.266.683 W model has unused tensor blk.24.attn_norm.weight (size = 8192 bytes) -- ignoring
+0.01.266.690 W model has unused tensor blk.24.post_attention_norm.weight (size = 8192 bytes) -- ignoring
+0.01.266.699 W model has unused tensor blk.24.attn_q.weight (size = 4718592 bytes) -- ignoring</code></pre>
+<hr />
+<h4 id="step-3--check-that-llamacpp-runs-qwen-correctly">Step 3 — Check
+That llama.cpp Runs Qwen Correctly</h4>
+<p>A low score could come from the runtime. Three checks cover the
+prompt going in, the probabilities coming out and the tool calls Qwen
+writes.</p>
+<p><strong>Prompts.</strong> Every prompt was rendered through
+llama-server's <code>/apply-template</code> and through transformers'
+<code>apply_chat_template</code>. All 400 tool-calling prompts, with
+their tools, and 100 math prompts came out byte-identical.</p>
+<p><strong>Next-token probabilities.</strong> The reference is
+transformers in float32 on the CPU over Qwen's bf16 weights, on 65
+prompts from the quality suite:</p>
+<p><img src="https://raw.githubusercontent.com/xbill9/qwen-dev/main/local-llamacpp-3050oem-qwen352b-q4_0/docs/qwen-vs-gemma/medium/img/devto-qwen35-vs-gemma4-e2b-table-2.png"
+alt="Table: Against transformers fp32, Same chosen answer, Answer-probability difference, median" /></p>
+<p>llama.cpp's bf16 file sits closer to the float32 reference than
+transformers' own bf16 path does. The drift comes from the 4-bit
+rounding.</p>
+<p><strong>Tool calls.</strong> Every BFCL reply that made no tool call
+was searched for text that looks like a call the parser could have
+missed (<code>tool_call</code>, <code>&lt;function</code>, a JSON
+object): 0 of 79 at Q4_0 and 0 of 48 at bf16. Those replies solve the
+problem in prose, such as working the Pythagorean theorem step by
+step.</p>
+<hr />
+<h4 id="step-4--measure-speed-on-one-binary">Step 4 — Measure Speed on
+One Binary</h4>
+<p><code>llama-bench</code> ran both models on the same build, card and
+hour, five cells alternating between models, each started with the GPU
+at 40 °C or below:</p>
+<pre class="shell"><code>llama-bench -p 512,2048 -n 128 -r 5 -ngl 99 -fa 1 -t 6</code></pre>
+<p>The summary script's output on the RTX 3050:</p>
+<pre class="text"><code>pp512: qwen 5193.44  gemma 4203.68  qwen/gemma 1.235x  qwen fa1/fa0 1.042x  qwen rep/first 0.993x  gemma rep/first 0.997x
+pp2048: qwen 5316.13  gemma 4050.45  qwen/gemma 1.312x  qwen fa1/fa0 1.078x  qwen rep/first 0.996x  gemma rep/first 0.999x
+tg128: qwen 132.84  gemma 118.30  qwen/gemma 1.123x  qwen fa1/fa0 1.012x  qwen rep/first 1.001x  gemma rep/first 1.002x</code></pre>
+<p><img src="https://raw.githubusercontent.com/xbill9/qwen-dev/main/local-llamacpp-3050oem-qwen352b-q4_0/docs/qwen-vs-gemma/medium/img/devto-qwen35-vs-gemma4-e2b-table-3.png"
+alt="Table: RTX 3050, GTX 1650 Ti" /></p>
+<p>Qwen's prefill rises with prompt length (5193 to 5316 t/s) while
+Gemma's falls (4204 to 4050). That fits the DeltaNet layers, whose cost
+does not grow with the prompt.</p>
+<hr />
+<h4 id="step-5--measure-answer-quality">Step 5 — Measure Answer
+Quality</h4>
+<p>Three tasks, the same task code and settings as the Gemma runs, 8
+requests at a time, greedy:</p>
+<ul>
+<li><strong>Suite</strong>: 13 classification sets, 3,880 questions,
+scored from the next-token probabilities</li>
+<li><strong>GSM8K</strong>: 1,319 math word problems, 2,048-token
+limit</li>
+<li><strong>BFCL simple</strong>: 400 tool-calling requests</li>
+</ul>
+<p>Qwen's suite prompts end in Qwen's own chat template with thinking
+closed, and its answers are read from Qwen's own tokens. Every pair of
+runs is compared question by question, with a 95% range from
+resampling.</p>
+<p><img src="https://raw.githubusercontent.com/xbill9/qwen-dev/main/local-llamacpp-3050oem-qwen352b-q4_0/docs/qwen-vs-gemma/medium/img/devto-qwen35-vs-gemma4-e2b-table-4.png"
+alt="Table: RTX 3050, Gemma E2B QAT Q4, Qwen Q4_0, Qwen − Gemma, 95% range" /></p>
+<p>Every range is far from zero. On the suite, Qwen is ahead only on
+boolq and squad2.</p>
+<p>Where Qwen loses points:</p>
+<ul>
+<li><strong>Option letters.</strong> Asked for <code>A</code>,
+<code>B</code> or <code>C</code>, it often writes the option's name
+instead. On multinli it answers <code>neutral</code> on 298 of 299
+questions.</li>
+<li><strong>One-sided answers.</strong> It calls 248 of 300 comments
+toxic, where the gold labels mark 32.</li>
+<li><strong>Long math answers.</strong> 100 GSM8K replies hit the
+2,048-token limit, against 5 for Gemma. With thinking off it still
+deliberates inside the answer.</li>
+<li><strong>Prose instead of tool calls.</strong> 79 of its 116 wrong
+BFCL answers made no tool call, mostly by solving the problem in text.
+Gemma skipped the tool 6 times.</li>
+</ul>
+<hr />
+<h4 id="step-6--score-qwen-unquantized">Step 6 — Score Qwen
+Unquantized</h4>
+<p>Qwen's 4-bit file is plain rounding, so part of the gap may be the
+rounding. The bf16 GGUF from Step 1 ran through the same three tasks on
+the same binary, the same day:</p>
+<p><img src="https://raw.githubusercontent.com/xbill9/qwen-dev/main/local-llamacpp-3050oem-qwen352b-q4_0/docs/qwen-vs-gemma/medium/img/devto-qwen35-vs-gemma4-e2b-table-5.png"
+alt="Table: RTX 3050, Qwen Q4_0, Qwen bf16, Gemma E2B QAT Q4" /></p>
+<ul>
+<li><strong>Rounding to Q4_0 costs Qwen 5.5 to 6.5 points per
+task</strong>, every range clear of zero.</li>
+<li><strong>Gemma's 4-bit build still leads unquantized Qwen by 19.5,
+10.0 and 16.0 points.</strong> The rounding accounts for a quarter to a
+third of the gap; the rest is the model.</li>
+<li>The same habits show at bf16: most comments called toxic, 48 BFCL
+replies with no tool call, 52 GSM8K replies at the length limit.</li>
+</ul>
+<hr />
+<h4 id="step-7--measure-what-qat-is-worth-to-gemma">Step 7 — Measure
+What QAT Is Worth to Gemma</h4>
+<p>Gemma's 4-bit file comes from quantization-aware training; Qwen's
+comes from rounding. To compare like with like, Gemma E2B's ordinary
+bf16 release was rounded to Q4_0 with the exact recipe used for Qwen,
+and scored on the GTX 1650 Ti beside the other three:</p>
+<p><img src="https://raw.githubusercontent.com/xbill9/qwen-dev/main/local-llamacpp-3050oem-qwen352b-q4_0/docs/qwen-vs-gemma/medium/img/devto-qwen35-vs-gemma4-e2b-table-6.png"
+alt="Table: GTX 1650 Ti, Gemma QAT Q4_0, Gemma rounded Q4_0, Qwen bf16, Qwen Q4_0" /></p>
+<p><img src="https://raw.githubusercontent.com/xbill9/qwen-dev/main/local-llamacpp-3050oem-qwen352b-q4_0/docs/qwen-vs-gemma/medium/img/devto-qwen35-vs-gemma4-e2b-table-7.png"
+alt="Table: Share of Qwen Q4_0&#39;s gap to Gemma QAT, Suite, GSM8K, BFCL" /></p>
+<p>QAT is worth 2 to 5 points to Gemma at 4 bits. <strong>Rounded Gemma
+still beats unquantized Qwen on all three tasks</strong>, by 14.4, 7.4
+and 13.3 points.</p>
+<hr />
+<h4 id="is-the-comparison-fair-to-qwen">Is the Comparison Fair to
+Qwen?</h4>
+<p>Four objections a Qwen user will raise, each checked against the
+per-question results.</p>
+<p><strong>Gemma is the bigger model.</strong> llama-bench counts 4.629B
+parameters for Gemma E2B against 1.943B for Qwen, most of Gemma's in
+per-layer embeddings. By file size, Qwen's bf16 GGUF is 3.90 GB and
+Gemma's QAT Q4_0 is 2.61 GB, and the larger Qwen file loses every task
+to the smaller Gemma one.</p>
+<p><strong>The token limit cut Qwen's math answers off.</strong> Scoring
+every GSM8K reply that hit the 2,048-token limit as right:</p>
+<p><img src="https://raw.githubusercontent.com/xbill9/qwen-dev/main/local-llamacpp-3050oem-qwen352b-q4_0/docs/qwen-vs-gemma/medium/img/devto-qwen35-vs-gemma4-e2b-table-8.png"
+alt="Table: RTX 3050, GSM8K, Scored, Every cut-off reply right, Gemma E2B QAT Q4" /></p>
+<p><strong>The tool-calling task punishes prose answers.</strong>
+Scoring every BFCL reply with no tool call as right:</p>
+<p><img src="https://raw.githubusercontent.com/xbill9/qwen-dev/main/local-llamacpp-3050oem-qwen352b-q4_0/docs/qwen-vs-gemma/medium/img/devto-qwen35-vs-gemma4-e2b-table-9.png"
+alt="Table: RTX 3050, BFCL simple, Scored, Every tool-less reply right, Gemma E2B QAT Q4" /></p>
+<p><strong>The suite scores answer format.</strong> Partly right. On
+three subsets Qwen gives one answer almost every time or writes the
+option name in place of the letter: civil_comments, summeval-consistency
+and multinli. With those removed, the bf16 gap to Gemma on the GTX 1650
+Ti shrinks from 19.3 points to 11.2. The suite is the most
+format-sensitive of the three results; Gemma still leads on it.</p>
+<p>Q4_K_M and importance-matrix builds of Qwen were not scored. The bf16
+file is the most any 4-bit build can recover, and Gemma leads it on
+every task.</p>
+<hr />
+<h4 id="step-8--run-the-bf16-file-on-a-4-gb-card">Step 8 — Run the Bf16
+File on a 4 GB Card</h4>
+<p>Qwen's bf16 GGUF holds 3.62 GiB of weights, and the 1650 Ti has 4
+GiB. With every layer on the card, the 501.52 MiB compute buffer fails
+to allocate. Moving the last 6 of 24 blocks to the CPU is the fewest
+that fits:</p>
+<pre class="shell"><code>llama-server -m Qwen3.5-2B-bf16.gguf -ngl 99 -ot &#39;blk\.(18|19|20|21|22|23)\.=CPU&#39; \
+  -c 8192 -ctk f16 -ctv f16 -fa 1 -t 6 -tb 12 --parallel 1 --reasoning off --metrics</code></pre>
+<p><img src="https://raw.githubusercontent.com/xbill9/qwen-dev/main/local-llamacpp-3050oem-qwen352b-q4_0/docs/qwen-vs-gemma/medium/img/devto-qwen35-vs-gemma4-e2b-table-10.png"
+alt="Table: GTX 1650 Ti, Decode, tok/s, Prefill at 512, t/s, GPU memory" /></p>
+<p>Decode drops to 0.24x and prefill holds at 0.96x. The split costs no
+score: bf16 on this card scored 0.488, 0.807 and 0.762, level with the
+3050.</p>
+<hr />
+<h4 id="step-9--draft-with-qwens-mtp-head">Step 9 — Draft With Qwen's
+MTP Head</h4>
+<p>The Q4_0 file already carries Qwen's multi-token-prediction layer.
+llama.cpp drafts from it with <code>--spec-type draft-mtp</code> and no
+extra file:</p>
+<pre class="shell"><code>llama-server -m Qwen3.5-2B-Q4_0.gguf -ngl 99 -c 8192 -fa 1 \
+  --spec-type draft-mtp --spec-draft-n-max 1</code></pre>
+<p>The log confirms it and reports acceptance per request:</p>
+<pre class="text"><code>0.02.045.088 I common_speculative_init_result: creating MTP draft context against the target model &#39;/home/xbill/models/Qwen3.5-2B-gguf/Qwen3.5-2B-Q4_0.gguf&#39;
+0.04.830.818 I slot print_timing: id  0 | task 8 | draft acceptance = 0.91729 (  122 accepted /   133 generated), mean len =  1.92</code></pre>
+<p>Six prompts (code, chat, story, explain, facts, summary), one request
+at a time, geometric mean against no drafting on the RTX 3050:</p>
+<p><img src="https://raw.githubusercontent.com/xbill9/qwen-dev/main/local-llamacpp-3050oem-qwen352b-q4_0/docs/qwen-vs-gemma/medium/img/devto-qwen35-vs-gemma4-e2b-table-11.png"
+alt="Table: Drafted tokens, 1, 2, 3, 4, 6" /></p>
+<ul>
+<li><strong>1 drafted token is the setting to serve.</strong> Code gains
+most (1.25x greedy); story least (1.09x).</li>
+<li><strong>Greedy replies stay byte-identical to no drafting up to 3
+drafted tokens</strong> on the 3050.</li>
+<li>On the same card, Gemma's separate drafter gave 1.39x at 2
+tokens.</li>
+</ul>
+<hr />
+<h4 id="step-10--race-the-two-drafters-on-one-card">Step 10 — Race the
+Two Drafters on One Card</h4>
+<p>On the GTX 1650 Ti, both models on one binary, one request at a time,
+each with its best drafter setting of 1 token:</p>
+<p><img src="https://raw.githubusercontent.com/xbill9/qwen-dev/main/local-llamacpp-3050oem-qwen352b-q4_0/docs/qwen-vs-gemma/medium/img/devto-qwen35-vs-gemma4-e2b-table-12.png"
+alt="Table: GTX 1650 Ti, greedy tok/s, No drafter, 1 drafted token" /></p>
+<p>Sampled at temperature 0.8 the result is the same: 86.1 against 90.7
+tok/s. Gemma's drafter gains more, so the two tie.</p>
+<p>Drafting leaves Qwen's answers level: GSM8K 0.748 and BFCL 0.698 with
+the MTP head, against 0.734 and 0.688 without. At 8 requests at once,
+each task took 1.08–1.09x as long with drafting.</p>
+<hr />
+<h4
+id="mag_right-tip-pass-qwens-tokenizer-to-probability-scored-tasks">🔎
+Tip: Pass Qwen's Tokenizer to Probability-Scored Tasks</h4>
+<p>A task that scores answers from next-token probabilities has to look
+up the answer labels in the model's own vocabulary. Qwen's differs from
+Gemma's, so give the scorer <code>--tokenizer Qwen/Qwen3.5-2B</code>;
+the default Gemma ids would read the wrong tokens.</p>
+<hr />
+<h4 id="mag_right-tip-two-hosts-two-different-hashes">🔎 Tip: Two Hosts,
+Two Different Hashes</h4>
+<p>The 3050 host and the 1650 Ti host built Qwen's Q4_0 from the same
+revision on the same llama.cpp commit, and got files of the same size
+with different SHA-256s (<code>1c27608b…</code> and
+<code>bd99d5ae…</code>). The bf16 files differ too, so the change enters
+at conversion. They pick the same answer on 62 of 65 prompts and score
+within 2.2 points on every task. Pin a hash per host, and keep one file
+if you need byte-identical results across machines.</p>
+<hr />
+<h4 id="compare-and-contrast">Compare and Contrast</h4>
+<p><img src="https://raw.githubusercontent.com/xbill9/qwen-dev/main/local-llamacpp-3050oem-qwen352b-q4_0/docs/qwen-vs-gemma/medium/img/devto-qwen35-vs-gemma4-e2b-table-13.png"
+alt="Table: Qwen3.5-2B Q4_0, Gemma 4 E2B QAT Q4_0" /></p>
+<hr />
+<h4 id="so-which-one">So, Which One?</h4>
+<p>Gemma 4 E2B. Qwen3.5-2B decodes faster without a drafter and prefills
+faster on prompts up to 2,048 tokens. Gemma answers better on all three
+tasks measured, at 4 bits against Qwen's bf16, and with both drafters on
+the speed difference is gone.</p>
+<p>Qwen's built-in MTP head is a convenience: drafting with no extra
+file, and greedy text unchanged at 1 drafted token. Choose Qwen when
+prefill speed matters more than the answers; how its lead grows past
+2,048-token prompts is unmeasured here.</p>
+<hr />
+<h4 id="summary">Summary</h4>
+<p>The goal of this article was to serve Qwen3.5-2B with llama.cpp
+beside Gemma 4 E2B on two budget GPUs and compare them on speed and
+answer quality. The key to the solution was running both models on one
+llama.cpp binary with the same flags and the same task code, and scoring
+Qwen at bf16 and Gemma rounded the way Qwen's file is built. The results
+were:</p>
+<ul>
+<li>🟢 <strong>llama.cpp runs Qwen3.5-2B correctly</strong>: identical
+prompts to Qwen's template, and its bf16 probabilities sit closer to
+float32 than transformers' bf16 does.</li>
+<li>🟢 <strong>Qwen is faster without drafting</strong>: 1.12x decode
+and 1.24–1.31x prefill on the RTX 3050, 1.05x and 1.43–1.51x on the GTX
+1650 Ti.</li>
+<li>❌ <strong>Qwen scores lower on all three tasks</strong>: 15.5 to
+26.0 points behind Gemma at 4 bits, 10.0 to 19.5 behind at bf16.</li>
+<li>🟢 <strong>The gaps hold in Qwen's favour</strong>: scoring every
+cut-off GSM8K reply and every tool-less BFCL reply as right still leaves
+Qwen behind.</li>
+<li>⚠️ <strong>Rounding is a quarter to a third of Qwen's gap</strong>,
+and QAT is a tenth to a fifth of Gemma's lead.</li>
+<li>🟢 <strong>Qwen's MTP head drafts with no extra file</strong>: 1.15x
+greedy at 1 token, greedy text unchanged.</li>
+<li>⚠️ <strong>With both drafters on, the two tie on speed</strong>:
+91.0 against 92.1 tok/s on the GTX 1650 Ti.</li>
+</ul>
+<p>Scope: one RTX 3050 OEM (8 GB) and one GTX 1650 Ti (4 GB), llama.cpp
+<code>7182ef71e</code> for every Qwen run and for Gemma on the 1650 Ti,
+measured 2026-10-16 and 2026-10-17. The Gemma quality figures on the
+3050 come from 2026-10-13 on llama.cpp <code>77c4540ce</code>; Gemma's
+runs on the 1650 Ti on <code>7182ef71e</code> scored level with them.
+Speed cells ran 3 to 5 repeats; each quality task ran once per file.
+Both models ran with thinking off and greedy decoding throughout; Qwen
+thinks by default, and thinking on was not run for either. The three
+tasks are classification, grade-school math and simple tool calling: no
+coding, Chinese, instruction-following or long-context task. Prefill was
+measured up to 2,048 tokens and every Qwen run served one request at a
+time, except the 8-request quality runs. No importance-matrix, Q4_K_M or
+Q8_0 build of either model was scored. The scoring code and the two
+cards were set up for this repository's Gemma work.</p>
+<p>The strategy for using MCP for serving and comparing Qwen3.5-2B and
+Gemma 4 E2B on local GPUs was validated with an incremental step by step
+approach.</p>
+<hr />
+<h4 id="references">References</h4>
+<ul>
+<li><a
+href="https://github.com/xbill9/qwen-dev/tree/main/local-llamacpp-3050oem-qwen352b-q4_0">local-llamacpp-3050oem-qwen352b-q4_0
+| GitHub</a></li>
+<li><a
+href="https://github.com/xbill9/qwen-dev/tree/main/local-llamacpp-1650ti-qwen352b-q4_0">local-llamacpp-1650ti-qwen352b-q4_0
+| GitHub</a></li>
+<li><a href="https://huggingface.co/Qwen/Qwen3.5-2B">Qwen/Qwen3.5-2B |
+Hugging Face</a></li>
+<li><a
+href="https://huggingface.co/xbill9/gemma-4-E2B-it-qat-q4_0-exact-gguf">xbill9/gemma-4-E2B-it-qat-q4_0-exact-gguf
+| Hugging Face</a></li>
+<li><a
+href="https://huggingface.co/google/gemma-4-E2B-it">google/gemma-4-E2B-it
+| Hugging Face</a></li>
+<li><a
+href="https://dev.to/gde/gemma-4s-mtp-drafter-explained-speculative-decoding-and-a-4-bit-drafter-at-60-of-the-size-1oc0">Gemma
+4's MTP Drafter, Explained | dev.to</a></li>
+<li><a href="https://github.com/ggml-org/llama.cpp">llama.cpp |
+GitHub</a></li>
+</ul>
+</body>
+</html>
