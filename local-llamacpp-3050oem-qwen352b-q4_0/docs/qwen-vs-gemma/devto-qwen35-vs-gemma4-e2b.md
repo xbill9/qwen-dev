@@ -1,5 +1,5 @@
 ---
-title: "Qwen3.5-2B Against Gemma 4 E2B on Two Budget GPUs: 1.12x the Speed, 10 to 26 Points Behind"
+title: "Comparing Qwen and Gemma on the Low End: Qwen Is Faster Without Drafting, Gemma Has Better Quality"
 published: false
 description: "Step-by-step: serving Qwen3.5-2B with llama.cpp on an 8 GB RTX 3050 and a 4 GB GTX 1650 Ti beside Gemma 4 E2B, checking that llama.cpp runs it correctly, and measuring speed, answer quality, 4-bit rounding, QAT and drafting with Qwen's own MTP head."
 tags: gemma, qwen, llamacpp, cuda
