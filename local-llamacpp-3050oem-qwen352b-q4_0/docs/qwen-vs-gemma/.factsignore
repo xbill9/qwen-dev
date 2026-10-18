@@ -1,0 +1,4 @@
+# "62 of 65": the reports give it as a table cell ("| 65 | 62 |") in
+# 3050oem-qwen352b--2026-10-16-parity-transformers-3050oem-REPORT.md (llama.cpp bf16 vs fp32)
+# and 1650ti-qwen352b-q4_0--2026-10-16-parity-crosshost-1650ti-REPORT.md (Q4_0 across hosts).
+62 of 65

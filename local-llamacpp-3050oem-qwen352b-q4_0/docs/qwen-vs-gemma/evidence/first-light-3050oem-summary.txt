@@ -1,0 +1,3 @@
+pp512: qwen 5193.44  gemma 4203.68  qwen/gemma 1.235x  qwen fa1/fa0 1.042x  qwen rep/first 0.993x  gemma rep/first 0.997x
+pp2048: qwen 5316.13  gemma 4050.45  qwen/gemma 1.312x  qwen fa1/fa0 1.078x  qwen rep/first 0.996x  gemma rep/first 0.999x
+tg128: qwen 132.84  gemma 118.30  qwen/gemma 1.123x  qwen fa1/fa0 1.012x  qwen rep/first 1.001x  gemma rep/first 1.002x

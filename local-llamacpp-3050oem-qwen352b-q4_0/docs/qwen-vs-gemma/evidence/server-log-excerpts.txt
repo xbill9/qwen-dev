@@ -1,0 +1,6 @@
+# excerpts, local-llamacpp-3050oem-qwen352b-q4_0/benchmarks/runs/2026-10-16-spec-mtp-3050oem/server-mtp-n1.log and first-light serve log
+0.02.045.088 I common_speculative_init_result: creating MTP draft context against the target model '/home/xbill/models/Qwen3.5-2B-gguf/Qwen3.5-2B-Q4_0.gguf'
+0.04.830.818 I slot print_timing: id  0 | task 8 | draft acceptance = 0.91729 (  122 accepted /   133 generated), mean len =  1.92
+0.01.266.683 W model has unused tensor blk.24.attn_norm.weight (size = 8192 bytes) -- ignoring
+0.01.266.690 W model has unused tensor blk.24.post_attention_norm.weight (size = 8192 bytes) -- ignoring
+0.01.266.699 W model has unused tensor blk.24.attn_q.weight (size = 4718592 bytes) -- ignoring

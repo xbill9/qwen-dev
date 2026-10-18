@@ -1,0 +1,80 @@
+## qwen, greedy
+
+| prompt | none | draft-n1 | draft-n2 |
+|---|---|---|---|
+| code | 82.9 | 101.2 (1.22x) 0.90 | 107.4 (1.30x) 0.88 |
+| chat | 82.2 | 87.0 (1.06x) 0.63 | 81.2 (0.99x) 0.55 |
+| story | 82.0 | 88.2 (1.08x) 0.65 | 73.3 (0.89x) 0.44 |
+| explain | 81.9 | 89.5 (1.09x) 0.66 | 78.4 (0.96x) 0.51 |
+| facts | 82.0 | 94.2 (1.15x) 0.76 | 90.2 (1.10x) 0.66 |
+| summary | 82.1 | 86.5 (1.05x) 0.62 | 79.5 (0.97x) 0.53 |
+| geometric mean, x | 1.000 | 1.107 | 1.026 |
+| geometric mean, tok/s | 82.2 | 91.0 | 84.3 |
+
+## qwen, sampled
+
+| prompt | none | draft-n1 | draft-n2 |
+|---|---|---|---|
+| code | 82.2 | 100.4 (1.22x) 0.88 | 94.0 (1.14x) 0.72 |
+| chat | 81.9 | 84.1 (1.03x) 0.56 | 72.6 (0.89x) 0.43 |
+| story | 81.9 | 80.3 (0.98x) 0.49 | 66.5 (0.81x) 0.35 |
+| explain | 81.7 | 82.3 (1.01x) 0.54 | 69.9 (0.86x) 0.40 |
+| facts | 81.8 | 91.3 (1.12x) 0.71 | 84.5 (1.03x) 0.59 |
+| summary | 81.6 | 80.0 (0.98x) 0.49 | 67.3 (0.83x) 0.37 |
+| geometric mean, x | 1.000 | 1.052 | 0.918 |
+| geometric mean, tok/s | 81.8 | 86.1 | 75.2 |
+
+qwen: largest within-cell spread across greedy repeats: 2.4%
+
+## gemma, greedy
+
+| prompt | none | draft-n1 | draft-n2 |
+|---|---|---|---|
+| code | 78.6 | 106.8 (1.36x) 0.85 | 115.9 (1.47x) 0.83 |
+| chat | 78.0 | 90.9 (1.17x) 0.58 | 81.0 (1.04x) 0.42 |
+| story | 77.9 | 84.1 (1.08x) 0.46 | 69.4 (0.89x) 0.29 |
+| explain | 77.8 | 90.6 (1.17x) 0.58 | 82.5 (1.06x) 0.44 |
+| facts | 77.7 | 93.9 (1.21x) 0.63 | 89.7 (1.15x) 0.53 |
+| summary | 77.8 | 87.6 (1.13x) 0.53 | 72.4 (0.93x) 0.33 |
+| geometric mean, x | 1.000 | 1.181 | 1.076 |
+| geometric mean, tok/s | 77.9 | 92.1 | 83.9 |
+
+## gemma, sampled
+
+| prompt | none | draft-n1 | draft-n2 |
+|---|---|---|---|
+| code | 77.9 | 105.6 (1.36x) 0.85 | 109.5 (1.40x) 0.77 |
+| chat | 77.9 | 89.0 (1.14x) 0.56 | 81.0 (1.04x) 0.43 |
+| story | 77.4 | 83.2 (1.07x) 0.45 | 71.4 (0.92x) 0.32 |
+| explain | 77.8 | 91.4 (1.17x) 0.60 | 79.4 (1.02x) 0.42 |
+| facts | 77.6 | 92.3 (1.19x) 0.61 | 86.7 (1.12x) 0.51 |
+| summary | 77.5 | 84.2 (1.09x) 0.48 | 71.7 (0.93x) 0.33 |
+| geometric mean, x | 1.000 | 1.167 | 1.060 |
+| geometric mean, tok/s | 77.7 | 90.7 | 82.4 |
+
+gemma: largest within-cell spread across greedy repeats: 0.9%
+
+## Qwen / Gemma, geometric-mean tok/s at each arm
+
+| mode | none | draft-n1 | draft-n2 |
+|---|---|---|---|
+| greedy | 1.054 | 0.988 | 1.005 |
+| sampled | 1.053 | 0.950 | 0.912 |
+
+Best drafted arm per model against the other model's no-draft arm (greedy):
+
+- qwen draft-n1: 91.0 tok/s, 1.167x gemma with no draft, 0.988x gemma draft-n1
+- gemma draft-n1: 92.1 tok/s, 1.120x qwen with no draft, 1.012x qwen draft-n1
+
+## greedy replies identical to the model's no-draft reply (rep 0), and repeats identical
+
+| model | arm | same as no draft | repeats identical |
+|---|---|---:|---:|
+| qwen | none | 6 of 6 | 6 of 6 |
+| qwen | draft-n1 | 6 of 6 | 6 of 6 |
+| qwen | draft-n2 | 0 of 6 | 6 of 6 |
+| gemma | none | 6 of 6 | 6 of 6 |
+| gemma | draft-n1 | 0 of 6 | 6 of 6 |
+| gemma | draft-n2 | 0 of 6 | 6 of 6 |
+
+VRAM per arm (nvidia-smi after warm-up): qwen none 1391 MiB; qwen draft-n1 1515 MiB; qwen draft-n2 1533 MiB; gemma none 1491 MiB; gemma draft-n1 1571 MiB; gemma draft-n2 1571 MiB
