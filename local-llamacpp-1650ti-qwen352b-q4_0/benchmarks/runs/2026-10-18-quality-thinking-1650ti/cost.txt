@@ -1,0 +1,4 @@
+qwen gsm8k: n=300 right=248 wall_s=36269.8 wall_min=604.5 wall_h=10.07 s_per_right=146.2 tokens_total=3407907 tokens_per_right=13742 tokens_median=7607
+qwen bfcl: n=400 right=335 wall_s=1456.4 wall_min=24.3 wall_h=0.40 s_per_right=4.3 tokens_total=109946 tokens_per_right=328 tokens_median=160
+gemma gsm8k: n=300 right=279 wall_s=1872.6 wall_min=31.2 wall_h=0.52 s_per_right=6.7 tokens_total=270970 tokens_per_right=971 tokens_median=808
+gemma bfcl: n=400 right=355 wall_s=949.5 wall_min=15.8 wall_h=0.26 s_per_right=2.7 tokens_total=117153 tokens_per_right=330 tokens_median=284

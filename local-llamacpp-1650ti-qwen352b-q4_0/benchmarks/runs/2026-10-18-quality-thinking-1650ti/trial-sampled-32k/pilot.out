@@ -1,0 +1,6 @@
+qwen up 2908 MiB
+{"task": "gsm8k", "max_tokens": 32000, "n": 16, "right": 12, "accuracy": 0.75, "errors": 0, "truncated": 3, "wall_s": 2243.2}
+{"task": "bfcl_simple", "max_tokens": 32000, "n": 16, "right": 16, "accuracy": 1.0, "errors": 0, "truncated": 0, "wall_s": 42.1}
+e2b up 2266 MiB
+{"task": "gsm8k", "max_tokens": 32000, "n": 16, "right": 11, "accuracy": 0.6875, "errors": 0, "truncated": 0, "wall_s": 134.4}
+{"task": "bfcl_simple", "max_tokens": 32000, "n": 16, "right": 16, "accuracy": 1.0, "errors": 0, "truncated": 0, "wall_s": 31.1}
