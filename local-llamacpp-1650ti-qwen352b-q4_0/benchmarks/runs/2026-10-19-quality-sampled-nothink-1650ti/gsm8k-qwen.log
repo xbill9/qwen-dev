@@ -1,0 +1,1 @@
+{"task": "gsm8k", "max_tokens": 32000, "n": 300, "right": 237, "accuracy": 0.79, "errors": 0, "truncated": 4, "wall_s": 8243.0}
