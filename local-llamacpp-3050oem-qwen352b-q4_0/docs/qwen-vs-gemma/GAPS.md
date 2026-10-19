@@ -22,7 +22,7 @@ three results.
 
 | Gap | Status |
 | --- | --- |
-| **Thinking off for both models.** Qwen3.5 thinks by default and deliberates in its answers with thinking off. | Not run. Needs a longer token limit and Gemma with thinking on as well. The largest open question, on GSM8K most of all. |
+| **Thinking off for both models.** | **Run 2026-10-18 on the GTX 1650 Ti** (`local-llamacpp-1650ti-qwen352b-q4_0/benchmarks/runs/2026-10-18-quality-thinking-1650ti`), each vendor's thinking sampling, 32,000-token limit, GSM8K 300 / BFCL 400. Qwen +9.7 / +15.0, Gemma +0.3 / −3.0; Gemma still leads by 10.3 / 5.0, ranges clear of zero. Qwen's GSM8K median reply 7,607 tokens against 808. |
 | Greedy decoding throughout; Qwen's recommended sampling settings | Not checked |
 | Three tasks only: no coding, Chinese, instruction following, long-context tasks; German and English intent classification only for multilingual | Not run; the title generalises from three tasks |
 | Prefill measured to 2,048 tokens; Qwen at one request at a time only | Not run; Qwen's linear-attention layers favour long prompts |
@@ -42,6 +42,4 @@ three results.
 ## Next runs, cheapest first
 
 - Article edits above (no runs).
-- Thinking on, both models, GSM8K and BFCL with an 8k-token limit, RTX 3050. Duration not estimated;
-  bf16 GSM8K took 48.5 min at 2,048.
 - Qwen Q4_K_M with an importance matrix; the suite rescored to accept option names.

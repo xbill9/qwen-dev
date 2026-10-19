@@ -1,0 +1,231 @@
+{
+ "describe": {
+  "gsm8k/qwen/on": {
+   "n": 300,
+   "accuracy": 0.8266666666666667,
+   "tokens_median": 7607.0,
+   "tokens_mean": 11360,
+   "tokens_max": 32000,
+   "cut_off": 31,
+   "cut_off_right": 5,
+   "best_case": 0.9133333333333333,
+   "seconds_sum": 144841,
+   "errors": 0
+  },
+  "gsm8k/qwen/off": {
+   "n": 300,
+   "accuracy": 0.73,
+   "tokens_median": 365.0,
+   "tokens_mean": 535,
+   "tokens_max": 2048,
+   "cut_off": 26,
+   "cut_off_right": 6,
+   "best_case": 0.7966666666666666,
+   "seconds_sum": 7012,
+   "errors": 0
+  },
+  "gsm8k/e2b/on": {
+   "n": 300,
+   "accuracy": 0.93,
+   "tokens_median": 808.0,
+   "tokens_mean": 903,
+   "tokens_max": 5070,
+   "cut_off": 0,
+   "cut_off_right": 0,
+   "best_case": 0.93,
+   "seconds_sum": 7340,
+   "errors": 0
+  },
+  "gsm8k/e2b/off": {
+   "n": 300,
+   "accuracy": 0.9266666666666666,
+   "tokens_median": 343.5,
+   "tokens_mean": 392,
+   "tokens_max": 1586,
+   "cut_off": 0,
+   "cut_off_right": 0,
+   "best_case": 0.9266666666666666,
+   "seconds_sum": 5556,
+   "errors": 0
+  },
+  "bfcl/qwen/on": {
+   "n": 400,
+   "accuracy": 0.8375,
+   "tokens_median": 159.5,
+   "tokens_mean": 275,
+   "tokens_max": 32000,
+   "cut_off": 1,
+   "cut_off_right": 0,
+   "best_case": 0.84,
+   "seconds_sum": 4823,
+   "errors": 0,
+   "no_call": 8,
+   "reasons": {
+    "0": 8,
+    "value": 53,
+    "missing": 3,
+    "name": 1
+   }
+  },
+  "bfcl/qwen/off": {
+   "n": 400,
+   "accuracy": 0.6875,
+   "tokens_median": 59.0,
+   "tokens_mean": 110,
+   "tokens_max": 512,
+   "cut_off": 12,
+   "cut_off_right": 0,
+   "best_case": 0.7175,
+   "seconds_sum": 4472,
+   "errors": 0,
+   "no_call": 88,
+   "reasons": {
+    "0": 88,
+    "value": 32,
+    "missing": 2,
+    "name": 1,
+    "2": 2
+   }
+  },
+  "bfcl/e2b/on": {
+   "n": 400,
+   "accuracy": 0.8875,
+   "tokens_median": 284.0,
+   "tokens_mean": 293,
+   "tokens_max": 1280,
+   "cut_off": 0,
+   "cut_off_right": 0,
+   "best_case": 0.8875,
+   "seconds_sum": 3793,
+   "errors": 0,
+   "no_call": 7,
+   "reasons": {
+    "missing": 2,
+    "value": 35,
+    "0": 7,
+    "name": 1
+   }
+  },
+  "bfcl/e2b/off": {
+   "n": 400,
+   "accuracy": 0.9175,
+   "tokens_median": 31.0,
+   "tokens_mean": 32,
+   "tokens_max": 92,
+   "cut_off": 0,
+   "cut_off_right": 0,
+   "best_case": 0.9175,
+   "seconds_sum": 2278,
+   "errors": 0,
+   "no_call": 5,
+   "reasons": {
+    "missing": 3,
+    "value": 24,
+    "0": 5,
+    "name": 1
+   }
+  }
+ },
+ "pairs": {
+  "gsm8k/qwen on vs off": {
+   "n": 300,
+   "ref": 0.73,
+   "test": 0.8266666666666667,
+   "diff": 0.09666666666666666,
+   "lo": 0.043333333333333335,
+   "hi": 0.15,
+   "ref_only": 19,
+   "test_only": 48
+  },
+  "gsm8k/e2b on vs off": {
+   "n": 300,
+   "ref": 0.9266666666666666,
+   "test": 0.93,
+   "diff": 0.0033333333333333335,
+   "lo": -0.023333333333333334,
+   "hi": 0.03,
+   "ref_only": 8,
+   "test_only": 9
+  },
+  "gsm8k/qwen vs e2b, thinking off": {
+   "n": 300,
+   "ref": 0.9266666666666666,
+   "test": 0.73,
+   "diff": -0.19666666666666666,
+   "lo": -0.24666666666666667,
+   "hi": -0.14666666666666667,
+   "ref_only": 66,
+   "test_only": 7
+  },
+  "gsm8k/qwen vs e2b, thinking on": {
+   "n": 300,
+   "ref": 0.93,
+   "test": 0.8266666666666667,
+   "diff": -0.10333333333333333,
+   "lo": -0.14333333333333334,
+   "hi": -0.06333333333333334,
+   "ref_only": 35,
+   "test_only": 4
+  },
+  "gsm8k/qwen on vs e2b off": {
+   "n": 300,
+   "ref": 0.9266666666666666,
+   "test": 0.8266666666666667,
+   "diff": -0.1,
+   "lo": -0.14333333333333334,
+   "hi": -0.06,
+   "ref_only": 37,
+   "test_only": 7
+  },
+  "bfcl/qwen on vs off": {
+   "n": 400,
+   "ref": 0.6875,
+   "test": 0.8375,
+   "diff": 0.15,
+   "lo": 0.1,
+   "hi": 0.1975,
+   "ref_only": 24,
+   "test_only": 84
+  },
+  "bfcl/e2b on vs off": {
+   "n": 400,
+   "ref": 0.9175,
+   "test": 0.8875,
+   "diff": -0.03,
+   "lo": -0.0575,
+   "hi": -0.005,
+   "ref_only": 20,
+   "test_only": 8
+  },
+  "bfcl/qwen vs e2b, thinking off": {
+   "n": 400,
+   "ref": 0.9175,
+   "test": 0.6875,
+   "diff": -0.23,
+   "lo": -0.28,
+   "hi": -0.18,
+   "ref_only": 105,
+   "test_only": 13
+  },
+  "bfcl/qwen vs e2b, thinking on": {
+   "n": 400,
+   "ref": 0.8875,
+   "test": 0.8375,
+   "diff": -0.05,
+   "lo": -0.09,
+   "hi": -0.0125,
+   "ref_only": 42,
+   "test_only": 22
+  },
+  "bfcl/qwen on vs e2b off": {
+   "n": 400,
+   "ref": 0.9175,
+   "test": 0.8375,
+   "diff": -0.08,
+   "lo": -0.1175,
+   "hi": -0.0425,
+   "ref_only": 47,
+   "test_only": 15
+  }
+ }
+}
