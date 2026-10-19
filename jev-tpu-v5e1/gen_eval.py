@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """gen_eval.py -- generation and tool-calling reads against a served model, scored in code.
 
-  gen_eval.py run <upstream> <model> <task> <out.jsonl> [--limit N] [--concurrency C]
+  gen_eval.py run <upstream> <model> <task> <out.jsonl> [--limit N] [--ids FILE] [--concurrency C]
   gen_eval.py score <out.jsonl>
 
 Tasks (records from build_gen_set.py, under data/):
@@ -35,6 +35,10 @@ GSM8K_PROMPT = (
     "on its own last line as 'Answer: <number>'.\n\n{question}"
 )
 GSM8K_MAX_TOKENS = int(os.environ.get("JEV_GEN_MAX_TOKENS", "768"))
+# BFCL's limit; raise it for thinking models, whose reasoning counts against max_tokens.
+BFCL_MAX_TOKENS = int(os.environ.get("JEV_BFCL_MAX_TOKENS", "512"))
+# JEV_SAMPLING='{"temperature": 1.0, "top_k": 20, ...}' is merged into every request (unset: greedy).
+SAMPLING = json.loads(os.environ.get("JEV_SAMPLING") or "{}")
 # JEV_CACHE_PROMPT=0 sends llama.cpp's "cache_prompt": false (unset: the server default, on).
 CACHE_PROMPT = os.environ.get("JEV_CACHE_PROMPT")
 TYPES = {"dict": "object", "float": "number", "tuple": "array", "any": None}
@@ -178,7 +182,7 @@ def bfcl_check(calls, record):
 # ---------- running ----------
 
 
-def post(upstream, body, timeout=900):
+def post(upstream, body, timeout=3600):
     req = urllib.request.Request(
         upstream.rstrip("/") + "/v1/chat/completions", json.dumps(body).encode(), {"Content-Type": "application/json"}
     )
@@ -199,11 +203,12 @@ def one(upstream, model, task, rec):
         body = {
             "model": model,
             "temperature": 0,
-            "max_tokens": 512,
+            "max_tokens": BFCL_MAX_TOKENS,
             "messages": rec["question"],
             "tools": tools_for(rec["functions"]),
             "tool_choice": "auto",
         }
+    body.update(SAMPLING)
     if CACHE_PROMPT is not None:
         body["cache_prompt"] = CACHE_PROMPT != "0"
     out = {"id": rec["id"], "task": task, "max_tokens": body["max_tokens"]}
@@ -213,6 +218,8 @@ def one(upstream, model, task, rec):
         out.update(error=f"{type(e).__name__}: {e}"[:300], right=False, seconds=round(time.time() - t0, 2))
         return out
     msg = r["choices"][0]["message"]
+    if msg.get("reasoning_content"):
+        out["reasoning"] = msg["reasoning_content"]
     out.update(
         text=msg.get("content"),
         finish=r["choices"][0].get("finish_reason"),
@@ -238,6 +245,9 @@ def one(upstream, model, task, rec):
 
 def run(a):
     recs = [json.loads(line) for line in open(os.path.join(HERE, "data", a.task + ".jsonl"))]
+    if a.ids:
+        keep = set(open(a.ids).read().split())
+        recs = [r for r in recs if r["id"] in keep]
     if a.limit:
         recs = recs[: a.limit]
     t0 = time.time()
@@ -276,6 +286,7 @@ def main():
     r.add_argument("task", choices=["gsm8k", "bfcl_simple"])
     r.add_argument("out")
     r.add_argument("--limit", type=int)
+    r.add_argument("--ids", help="file of record ids, one per line; run only those")
     r.add_argument("--concurrency", type=int, default=16)
     s = sub.add_parser("score")
     s.add_argument("out")
