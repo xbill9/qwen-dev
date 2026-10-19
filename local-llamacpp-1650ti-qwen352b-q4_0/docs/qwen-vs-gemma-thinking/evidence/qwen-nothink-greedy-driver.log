@@ -1,0 +1,9 @@
+20:53:49 gpu=42, 300 MHz BEGIN q4_0 bd99d5aec3cbe960 version: 0.7.0-dev (build 909, commit 7182ef7)
+20:53:53 gpu=45, 1890 MHz server up: 1806 MiB
+20:53:54 gpu=45, 1035 MHz START suite
+21:38:33 gpu=56, 1035 MHz END suite rc=0
+21:38:34 gpu=56, 1035 MHz START gsm8k
+22:43:20 gpu=62, 1785 MHz END gsm8k rc=0 {"task": "gsm8k", "max_tokens": 2048, "n": 1319, "right": 968, "accuracy": 0.7339, "errors": 0, "truncated": 107, "wall_s": 3886.6}
+22:43:21 gpu=62, 1785 MHz START bfcl
+22:52:41 gpu=60, 1860 MHz END bfcl rc=0 {"task": "bfcl_simple", "max_tokens": 512, "n": 400, "right": 275, "accuracy": 0.6875, "errors": 0, "truncated": 12, "wall_s": 559.8}
+22:52:43 gpu=58, 1035 MHz DONE q4_0

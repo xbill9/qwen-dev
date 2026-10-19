@@ -1,0 +1,11 @@
+# excerpts, /home/xbill/qwen-dev/local-llamacpp-1650ti-qwen352b-q4_0/benchmarks/runs/2026-10-18-quality-thinking-1650ti/server-qwen.log and trial-greedy-8k/gsm8k-qwen.jsonl
+0.01.412.127 I srv    load_model: initializing, n_slots = 4, n_ctx_slot = 32768, kv_unified = 'false'
+nking steps to be in the final output. Yes.
+    Okay.
+    Wait, I need to check if the prompt requires the thinking steps to be in the final output. Yes.
+    Okay.
+    Wait, I need to check if the prompt requires the thinking steps to be in the final output. Yes.
+    Okay.
+    Wait, I need to check if the prompt requires the thinking steps to be in the final output. Yes.
+    Okay.
+    Wait, I need
