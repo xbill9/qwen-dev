@@ -201,7 +201,7 @@ Greedy decoding is the usual setting for repeatable scores. With thinking on it 
 
 #### So, Which One?
 
-Gemma 4 E2B, with thinking off. It scores higher than Qwen with thinking on, on both tasks, and answers math in a fraction of the time.
+Gemma 4 E2B, with thinking off and greedy decoding. It scores higher than Qwen with thinking on, on both tasks, and answers math in a fraction of the time.
 
 If you use Qwen, use its card's sampling settings, and turn thinking on for tool calls: it is worth 17.7 points there for few tokens. On math, thinking adds 3.7 points that may not be real, at 14 times Gemma's tokens per right answer. Leave Gemma's thinking off for these tasks; it gains nothing.
 
