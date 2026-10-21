@@ -1,0 +1,15 @@
+Qwen and Gemma With Thinking On: Thinking Pays Qwen on Tool Calls, Gemma Still Leads
+
+Step-by-step: turning thinking on for Qwen3.5-2B and Gemma 4 E2B under llama.cpp on a 4 GB GTX 1650 Ti, choosing sampling settings that keep Qwen's thinking from looping, and measuring what thinking alone is worth to both models on math and tool calling, and what it costs.
+
+What is in it:
+
+- 🟢 Thinking lifts Qwen on tool calls: +17.7 points on BFCL, with replies that skip the tool down from 83 to 8.
+- ⚠️ On math, thinking adds little to Qwen: +3.7, a range that includes zero; the other +6.0 came with the card's sampling and the longer limit together.
+- ❌ Thinking does not lift Gemma: +2.0 on GSM8K and +0.3 on BFCL, neither clear of zero.
+- 🟢 Gemma still leads: by 10.3 and 5.0 points with both thinking, and by 10.0 and 8.0 with only Qwen thinking.
+
+dev.to (Google Developer Experts): https://dev.to/gde/qwen-and-gemma-with-thinking-on-thinking-pays-qwen-on-tool-calls-gemma-still-leads-4dd2
+Medium: https://xbill999.medium.com/qwen-and-gemma-with-thinking-on-thinking-pays-qwen-on-tool-calls-gemma-still-leads-0fd5bcc29d2e
+Substack: https://xbill9.substack.com/p/qwen-and-gemma-with-thinking-on-thinking
+Source: https://github.com/xbill9/qwen-dev/tree/main/local-llamacpp-1650ti-qwen352b-q4_0
