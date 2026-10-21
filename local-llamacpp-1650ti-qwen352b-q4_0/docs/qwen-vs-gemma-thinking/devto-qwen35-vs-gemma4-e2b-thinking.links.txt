@@ -3,3 +3,4 @@ devto-gde = https://dev.to/gde/qwen-and-gemma-with-thinking-on-thinking-pays-qwe
 medium    = https://xbill999.medium.com/qwen-and-gemma-with-thinking-on-thinking-pays-qwen-on-tool-calls-gemma-still-leads-0fd5bcc29d2e
 substack  = https://xbill9.substack.com/p/qwen-and-gemma-with-thinking-on-thinking
 repo      = https://github.com/xbill9/qwen-dev/tree/main/local-llamacpp-1650ti-qwen352b-q4_0
+linkedin  = https://www.linkedin.com/feed/update/urn:li:share:7518746483433648128/
