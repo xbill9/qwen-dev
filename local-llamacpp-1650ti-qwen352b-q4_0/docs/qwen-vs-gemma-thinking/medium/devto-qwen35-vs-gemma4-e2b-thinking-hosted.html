@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.11" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Qwen and Gemma With Thinking On: Thinking Pays Qwen on Tool Calls, Gemma Still Leads</title>
+  <meta name="description" content="Step-by-step: turning thinking on for Qwen3.5-2B and Gemma 4 E2B under llama.cpp on a 4 GB GTX 1650 Ti, choosing sampling settings that keep Qwen&#x27;s thinking from looping, and measuring what thinking alone is worth to both models on math and tool calling, and what it costs." />
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: 1.5em;}
+    div.column{flex: auto;}
+    @media screen {
+    div.columns{gap: min(4vw, 1.5em);}
+    div.column{overflow-x: auto;}
+    }
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+  </style>
+  <style>
+    body{font-family:-apple-system,'Segoe UI',Roboto,'Liberation Sans',Arial,sans-serif;
+         font-size:18px;line-height:1.58;max-width:42em;color:#242424;}
+    h1,h2,h3,h4{font-weight:700;line-height:1.25;margin-top:1.8em;}
+    h4{font-size:1.25em;}
+    img{max-width:100%;height:auto;display:block;margin:1.6em 0;}
+    pre{background:#f7f7f7;border:1px solid #e6e6e6;border-radius:4px;
+        padding:12px 14px;overflow-x:auto;font-size:14px;line-height:1.45;}
+    code{font-family:'Liberation Mono',Menlo,Consolas,monospace;}
+    :not(pre)>code{background:#f2f2f2;padding:1px 5px;border-radius:3px;font-size:.9em;}
+    blockquote{border-left:3px solid #ddd;margin-left:0;padding-left:1em;color:#555;}
+    hr{border:0;border-top:1px solid #e6e6e6;margin:2.4em 0;}
+  </style>
+</head>
+<body>
+<p>This article follows <a
+href="https://dev.to/gde/comparing-qwen-and-gemma-on-the-low-end-qwen-is-faster-without-drafting-gemma-has-better-quality-30bo">Comparing
+Qwen and Gemma on the Low End</a>, which ran Qwen3.5-2B and Gemma 4 E2B
+with thinking off. Here both models think, on the same card, the same
+llama.cpp binary and the same 4-bit files.</p>
+<figure><img src="https://raw.githubusercontent.com/xbill9/qwen-dev/main/local-llamacpp-1650ti-qwen352b-q4_0/docs/qwen-vs-gemma-thinking/medium/img/devto-cover.8dab7794.jpg" alt="Qwen and Gemma With Thinking On: Thinking Pays Qwen on Tool Calls, Gemma Still Leads" /></figure>
+<p><a
+href="https://github.com/xbill9/qwen-dev/tree/main/local-llamacpp-1650ti-qwen352b-q4_0">https://github.com/xbill9/qwen-dev/tree/main/local-llamacpp-1650ti-qwen352b-q4_0</a></p>
+<p><strong>Thinking is worth 17.7 points to Qwen3.5-2B on BFCL tool
+calling and nothing measurable to Gemma 4 E2B. On GSM8K math, thinking
+alone adds 3.7 points to Qwen, a range that includes zero. With both
+models thinking, Gemma still leads by 10.3 points on math and 5.0 on
+tool calls. Qwen's thinking runs to a median of 7,607 tokens per math
+answer against Gemma's 808.</strong></p>
+<hr />
+<h4 id="what-is-this-project-trying-to-do">What is this project trying
+to Do?</h4>
+<p>The first article found Gemma 4 E2B ahead of Qwen3.5-2B on every
+task, with thinking off for both. Qwen3.5 is built to think, so the
+first question a Qwen user asks is what happens with thinking on.</p>
+<p>This article answers it on the GTX 1650 Ti, a 4 GB laptop card, for
+the two generation tasks: GSM8K math word problems and BFCL simple tool
+calls. Both models run as 4-bit GGUF files: Qwen's standard Q4_0 and
+Gemma's QAT Q4_0.</p>
+<hr />
+<h4 id="at-this-point-you-should-have">At This Point You Should
+Have…</h4>
+<ul>
+<li>An NVIDIA GPU with a CUDA driver — here a GTX 1650 Ti (4 GB,
+Turing)</li>
+<li>llama.cpp built with CUDA — commit <code>7182ef71e</code> here</li>
+<li>The two GGUF files from the first article:
+<code>Qwen3.5-2B-Q4_0.gguf</code> and Gemma's
+<code>gemma-4-E2B-it-q4_0-exact.gguf</code></li>
+<li>Python 3 for the task runner — the system <code>python3</code>, no
+virtualenv</li>
+<li>The repository cloned, and <code>jev-tpu-v5e1/</code> holding
+<code>gen_eval.py</code></li>
+</ul>
+<hr />
+<h4 id="step-1--turn-thinking-on">Step 1 — Turn Thinking On</h4>
+<p>One server flag turns thinking on for both models:</p>
+<pre class="shell"><code>llama-server -m Qwen3.5-2B-Q4_0.gguf --host 127.0.0.1 --port 8080 -ngl 99 \
+  -c 131072 --parallel 4 -ctk f16 -ctv f16 -fa 1 -t 6 -tb 12 --reasoning on --metrics</code></pre>
+<p>llama-server puts the thinking in
+<code>message.reasoning_content</code> and the answer in
+<code>message.content</code>. Only <code>content</code> is scored; the
+task runner keeps the thinking in each record for reading later.</p>
+<p><code>-c 131072 --parallel 4</code> gives each of 4 slots 32,768
+tokens, so a request has room to think. The server log confirms the
+split:</p>
+<pre class="text"><code>0.01.412.127 I srv    load_model: initializing, n_slots = 4, n_ctx_slot = 32768, kv_unified = &#39;false&#39;</code></pre>
+<hr />
+<h4 id="step-2--use-each-vendors-sampling-settings">Step 2 — Use Each
+Vendor's Sampling Settings</h4>
+<p>The thinking-off runs used greedy decoding. With thinking on, greedy
+decoding breaks Qwen. On 16 GSM8K problems with an 8,192-token
+limit:</p>
+<pre class="text"><code>trial-greedy-8k/gsm8k-qwen.jsonl: n=16 limit=8192 right=5 hit_limit=11 ends_in_loop=9 still_thinking=11</code></pre>
+<p>Qwen got 5 of 16 right. It hit the limit on 11, every one still
+thinking, and 9 of those ended in one sentence repeated dozens of
+times:</p>
+<pre class="text"><code>    Wait, I need to check if the prompt requires the thinking steps to be in the final output. Yes.
+    Okay.
+    Wait, I need to check if the prompt requires the thinking steps to be in the final output. Yes.
+    Okay.</code></pre>
+<p>Qwen's model card gives settings for thinking mode, and Gemma's
+<code>generation_config.json</code> gives its own:</p>
+<pre class="text"><code>Qwen3.5-2B, thinking mode for text tasks: temperature=1.0, top_p=0.95, top_k=20, min_p=0.0, presence_penalty=1.5, repetition_penalty=1.0
+Gemma 4 E2B: &quot;temperature&quot;: 1.0, &quot;top_k&quot;: 64, &quot;top_p&quot;: 0.95</code></pre>
+<p>Each model ran at its own vendor's settings. <code>gen_eval.py</code>
+merges them into every request from one variable:</p>
+<pre class="shell"><code>JEV_SAMPLING=&#39;{&quot;temperature&quot;:1.0,&quot;top_p&quot;:0.95,&quot;top_k&quot;:20,&quot;min_p&quot;:0.0,&quot;presence_penalty&quot;:1.5,&quot;repeat_penalty&quot;:1.0}&#39; \
+JEV_GEN_MAX_TOKENS=32000 python3 gen_eval.py run http://127.0.0.1:8080 Qwen/Qwen3.5-2B gsm8k gsm8k-qwen.jsonl \
+  --ids gsm8k-300-ids.txt --concurrency 4</code></pre>
+<hr />
+<h4 id="step-3--give-thinking-room">Step 3 — Give Thinking Room</h4>
+<p>Qwen's card recommends an output length of 32,768 tokens for most
+queries. Both models got a 32,000-token limit on both tasks.</p>
+<p>At that length Qwen's math takes hours on this card, so GSM8K is a
+fixed random 300 of its 1,319 problems, drawn once with a fixed seed and
+used for both models. BFCL is all 400. With thinking off, the 300 score
+Qwen at 0.730 and Gemma at 0.927, against 0.734 and 0.901 on all 1,319:
+the sample matches the full set for Qwen and favours Gemma by 2.6
+points. Gemma's math leads below are about 3 points larger than the full
+set would give: with thinking off its lead is 16.7 points on all 1,319
+and 19.7 on the 300.</p>
+<hr />
+<h4 id="step-4--score-both-models">Step 4 — Score Both Models</h4>
+<p>Each model with thinking on is paired question by question against
+its own thinking-off records on the same 300 problems and 400 requests,
+with a 95% range from 10,000 resamples:</p>
+<p><img src="https://raw.githubusercontent.com/xbill9/qwen-dev/main/local-llamacpp-1650ti-qwen352b-q4_0/docs/qwen-vs-gemma-thinking/medium/img/devto-qwen35-vs-gemma4-e2b-thinking-table-1.png"
+alt="Table: GTX 1650 Ti, Qwen off, Qwen on, Gemma off, Gemma on" /></p>
+<p><img src="https://raw.githubusercontent.com/xbill9/qwen-dev/main/local-llamacpp-1650ti-qwen352b-q4_0/docs/qwen-vs-gemma-thinking/medium/img/devto-qwen35-vs-gemma4-e2b-thinking-table-2.png"
+alt="Table: Thinking on − thinking off, Change, 95% range" /></p>
+<p><img src="https://raw.githubusercontent.com/xbill9/qwen-dev/main/local-llamacpp-1650ti-qwen352b-q4_0/docs/qwen-vs-gemma-thinking/medium/img/devto-qwen35-vs-gemma4-e2b-thinking-table-3.png"
+alt="Table: Gemma&#39;s lead over Qwen, GSM8K, BFCL" /></p>
+<ul>
+<li><strong>Qwen rises 9.7 and 15.0 points</strong>, both ranges clear
+of zero.</li>
+<li><strong>Gemma is level on math and loses 3.0 points on tool
+calls.</strong> Gemma with thinking off still beats Qwen with thinking
+on.</li>
+<li><strong>On BFCL, Qwen now calls the tool.</strong> Replies with no
+tool call fall from 88 of 400 to 8. Its misses are now mostly wrong
+argument values.</li>
+</ul>
+<p>Step 4 changed two things at once: thinking, and greedy decoding to
+each vendor's sampling. Step 5 separates them.</p>
+<hr />
+<h4 id="step-5--separate-thinking-from-sampling">Step 5 — Separate
+Thinking From Sampling</h4>
+<p>One more run holds the sampling and turns thinking off: the same
+server, files, limit, problems and settings as Step 4, with
+<code>--reasoning off</code>. The greedy runs kept the first article's
+2,048 and 512-token limits, and the sampled runs had 32,000, so the
+first step changes the sampling and the limit together. Three runs per
+model, compared in pairs:</p>
+<p><img src="https://raw.githubusercontent.com/xbill9/qwen-dev/main/local-llamacpp-1650ti-qwen352b-q4_0/docs/qwen-vs-gemma-thinking/medium/img/devto-qwen35-vs-gemma4-e2b-thinking-table-4.png"
+alt="Table: GTX 1650 Ti, Greedy, thinking off, Vendor sampling, thinking off, Vendor sampling, thinking on" /></p>
+<p><img src="https://raw.githubusercontent.com/xbill9/qwen-dev/main/local-llamacpp-1650ti-qwen352b-q4_0/docs/qwen-vs-gemma-thinking/medium/img/devto-qwen35-vs-gemma4-e2b-thinking-table-5.png"
+alt="Table: Change, 95% range, Sampling and limit, Thinking alone" /></p>
+<ul>
+<li><strong>On tool calls, thinking is the whole of Qwen's
+gain</strong>: +17.7 points. With thinking off, Qwen still answers 83 of
+400 in prose; with thinking on, 8.</li>
+<li><strong>On math, thinking adds 3.7 points to Qwen</strong>, a range
+that includes zero. The other 6.0 points come with the sampling and the
+longer limit together. Greedy, 26 of 300 replies reached the 2,048-token
+limit, 24 of them with no loop at the end; with the card's settings and
+32,000 tokens, 4 of 300 reached the limit. Scored as right, those 26
+would put greedy at 0.797, level with the sampled 0.790.</li>
+<li><strong>Gemma's 3-point BFCL loss is the sampling.</strong> Gemma's
+greedy replies stayed well inside both limits (longest 1,586 tokens on
+math, 92 on tool calls), so for Gemma that column is sampling alone.
+Thinking changes neither of Gemma's scores beyond its range.</li>
+</ul>
+<p>At matched settings Gemma leads by 12.0 and 22.5 points with thinking
+off, and by 10.3 and 5.0 with thinking on.</p>
+<hr />
+<h4 id="step-6--count-what-thinking-costs">Step 6 — Count What Thinking
+Costs</h4>
+<p>From the records and the task runner's own wall times, 4 requests at
+a time:</p>
+<pre class="text"><code>qwen gsm8k: n=300 right=248 wall_s=36269.8 wall_min=604.5 wall_h=10.07 s_per_right=146.2 tokens_total=3407907 tokens_per_right=13742 tokens_median=7607
+qwen bfcl: n=400 right=335 wall_s=1456.4 wall_min=24.3 wall_h=0.40 s_per_right=4.3 tokens_total=109946 tokens_per_right=328 tokens_median=160
+gemma gsm8k: n=300 right=279 wall_s=1872.6 wall_min=31.2 wall_h=0.52 s_per_right=6.7 tokens_total=270970 tokens_per_right=971 tokens_median=808
+gemma bfcl: n=400 right=355 wall_s=949.5 wall_min=15.8 wall_h=0.26 s_per_right=2.7 tokens_total=117153 tokens_per_right=330 tokens_median=284</code></pre>
+<p><img src="https://raw.githubusercontent.com/xbill9/qwen-dev/main/local-llamacpp-1650ti-qwen352b-q4_0/docs/qwen-vs-gemma-thinking/medium/img/devto-qwen35-vs-gemma4-e2b-thinking-table-6.png"
+alt="Table: GTX 1650 Ti, thinking on, Qwen, Gemma" /></p>
+<p>On math, Qwen spends about 14 times Gemma's tokens and 22 times its
+time for each right answer. On tool calls the two spend the same
+tokens.</p>
+<p>31 of Qwen's 300 math replies used all 32,000 tokens; 20 of them were
+still thinking and 21 ended in repeated text. Scoring all 31 as right
+gives Qwen 0.913, still below Gemma's 0.930.</p>
+<hr />
+<h4 id="mag_right-tip-do-not-run-qwen-greedy">🔎 Tip: Do Not Run Qwen
+Greedy</h4>
+<p>Greedy decoding is the usual setting for repeatable scores. With
+thinking on it loops Qwen: 9 of 16 math problems ended in repeated text,
+and 5 of 16 were right against 12 of 16 at the card's settings. Use the
+card's settings, and keep <code>presence_penalty</code> in them; it is
+the one aimed at repetition.</p>
+<hr />
+<h4 id="mag_right-tip-the-token-limit-covers-the-thinking">🔎 Tip: The
+Token Limit Covers the Thinking</h4>
+<p><code>max_tokens</code> counts thinking tokens as well as the answer.
+A limit sized for thinking-off answers (512 for tool calls, 2,048 for
+math here) cuts a thinking model off mid-thought, with an empty
+<code>content</code>. Size the limit, and each slot's share of
+<code>-c</code>, for the thinking.</p>
+<hr />
+<h4 id="compare-and-contrast">Compare and Contrast</h4>
+<p><img src="https://raw.githubusercontent.com/xbill9/qwen-dev/main/local-llamacpp-1650ti-qwen352b-q4_0/docs/qwen-vs-gemma-thinking/medium/img/devto-qwen35-vs-gemma4-e2b-thinking-table-7.png"
+alt="Table: GTX 1650 Ti, thinking on, Qwen3.5-2B Q4_0, Gemma 4 E2B QAT Q4_0" /></p>
+<hr />
+<h4 id="so-which-one">So, Which One?</h4>
+<p>Gemma 4 E2B, with thinking off and greedy decoding. It scores higher
+than Qwen with thinking on, on both tasks, and answers math in a
+fraction of the time.</p>
+<p>If you use Qwen, use its card's sampling settings, and turn thinking
+on for tool calls: it is worth 17.7 points there for few tokens. On
+math, thinking adds 3.7 points that may not be real, at 14 times Gemma's
+tokens per right answer. Leave Gemma's thinking off for these tasks; it
+gains nothing.</p>
+<hr />
+<h4 id="summary">Summary</h4>
+<p>The goal of this article was to measure Qwen3.5-2B and Gemma 4 E2B
+with thinking on, where the first article ran them with thinking off.
+The key to the solution was running each model at its vendor's
+thinking-mode sampling with room to think, and a third run with the same
+sampling and thinking off, so that thinking's effect is measured with
+everything else held, question by question. The results were:</p>
+<ul>
+<li>🟢 <strong>Thinking lifts Qwen on tool calls</strong>: +17.7 points
+on BFCL, with replies that skip the tool down from 83 to 8.</li>
+<li>⚠️ <strong>On math, thinking adds little to Qwen</strong>: +3.7, a
+range that includes zero; the other +6.0 came with the card's sampling
+and the longer limit together.</li>
+<li>❌ <strong>Thinking does not lift Gemma</strong>: +2.0 on GSM8K and
++0.3 on BFCL, neither clear of zero.</li>
+<li>🟢 <strong>Gemma still leads</strong>: by 10.3 and 5.0 points with
+both thinking, and by 10.0 and 8.0 with only Qwen thinking.</li>
+<li>⚠️ <strong>Qwen's math thinking is expensive</strong>: 13,742 tokens
+and 146 seconds per right answer, against Gemma's 971 and 6.7.</li>
+<li>⚠️ <strong>Greedy decoding loops Qwen's thinking</strong>; its
+card's sampling settings fix it.</li>
+</ul>
+<p>Scope: one GTX 1650 Ti (4 GB), llama.cpp <code>7182ef71e</code>, the
+same Q4_0 files as the first article, measured 2026-10-18 and
+2026-10-19. Two tasks: GSM8K on a fixed random 300 of 1,319 problems and
+BFCL simple on all 400; the classification suite was not run with
+thinking on. The two sampled runs used each vendor's thinking-mode
+sampling and a 32,000-token limit, 4 requests at a time, once per model;
+the greedy thinking-off records are from the first article's runs, with
+2,048 and 512-token limits, 8 at a time. Thinking with greedy decoding
+was run on 16 problems only. Each sampled setting was run once, and a
+re-run gives different text, so the 95% ranges cover the choice of
+questions but not run-to-run variation. With
+<code>--reasoning off</code>, Gemma still wrote reasoning on 26 of 400
+sampled BFCL replies, 25 of them right; the greedy runs have none. The
+task prompts and scoring code were written for this repository's Gemma
+work.</p>
+<p>The strategy for measuring thinking on Qwen3.5-2B and Gemma 4 E2B on
+a local GPU was validated with an incremental step by step approach.</p>
+<hr />
+<h4 id="references">References</h4>
+<ul>
+<li><a
+href="https://dev.to/gde/comparing-qwen-and-gemma-on-the-low-end-qwen-is-faster-without-drafting-gemma-has-better-quality-30bo">Comparing
+Qwen and Gemma on the Low End | dev.to</a></li>
+<li><a
+href="https://github.com/xbill9/qwen-dev/tree/main/local-llamacpp-1650ti-qwen352b-q4_0">local-llamacpp-1650ti-qwen352b-q4_0
+| GitHub</a></li>
+<li><a href="https://huggingface.co/Qwen/Qwen3.5-2B">Qwen/Qwen3.5-2B |
+Hugging Face</a></li>
+<li><a
+href="https://huggingface.co/google/gemma-4-E2B-it">google/gemma-4-E2B-it
+| Hugging Face</a></li>
+<li><a
+href="https://huggingface.co/xbill9/gemma-4-E2B-it-qat-q4_0-exact-gguf">xbill9/gemma-4-E2B-it-qat-q4_0-exact-gguf
+| Hugging Face</a></li>
+<li><a href="https://github.com/ggml-org/llama.cpp">llama.cpp |
+GitHub</a></li>
+</ul>
+</body>
+</html>
