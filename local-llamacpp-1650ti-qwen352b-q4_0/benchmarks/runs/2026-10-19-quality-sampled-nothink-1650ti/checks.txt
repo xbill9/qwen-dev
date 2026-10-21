@@ -1,0 +1,5 @@
+qwen gsm8k greedy-off 300: hit_limit=26 ends_in_loop=2 no_loop=24 best_case=0.797
+qwen gsm8k trial-greedy-8k: 5 of 16 right
+qwen gsm8k trial-sampled-32k: 12 of 16 right
+gemma bfcl sampled-off, --reasoning off: 26 of 400 with reasoning, 25 right
+gemma bfcl greedy-off, --reasoning off: 0 of 400 with reasoning, 0 right

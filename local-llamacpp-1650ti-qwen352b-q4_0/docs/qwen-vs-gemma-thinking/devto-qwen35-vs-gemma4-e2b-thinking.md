@@ -1,7 +1,7 @@
 ---
 title: "Qwen and Gemma With Thinking On: Thinking Pays Qwen on Tool Calls, Gemma Still Leads"
 published: false
-description: "Step-by-step: turning thinking on for Qwen3.5-2B and Gemma 4 E2B under llama.cpp on a 4 GB GTX 1650 Ti, choosing sampling settings that keep Qwen's thinking from looping, and separating what thinking and sampling are each worth to both models on math and tool calling, and what thinking costs."
+description: "Step-by-step: turning thinking on for Qwen3.5-2B and Gemma 4 E2B under llama.cpp on a 4 GB GTX 1650 Ti, choosing sampling settings that keep Qwen's thinking from looping, and measuring what thinking alone is worth to both models on math and tool calling, and what it costs."
 tags: gemma, qwen, llamacpp, cuda
 cover_image: https://raw.githubusercontent.com/xbill9/qwen-dev/main/local-llamacpp-1650ti-qwen352b-q4_0/docs/qwen-vs-gemma-thinking/devto-cover.8dab7794.jpg
 ---
@@ -10,7 +10,7 @@ This article follows [Comparing Qwen and Gemma on the Low End](https://dev.to/gd
 
 https://github.com/xbill9/qwen-dev/tree/main/local-llamacpp-1650ti-qwen352b-q4_0
 
-**Thinking is worth 17.7 points to Qwen3.5-2B on BFCL tool calling and nothing measurable to Gemma 4 E2B. On GSM8K math, Qwen's 9.7-point rise is mostly its recommended sampling settings, which stop its long answers running away. With both models thinking, Gemma still leads by 10.3 points on math and 5.0 on tool calls. Qwen's thinking runs to a median of 7,607 tokens per math answer against Gemma's 808.**
+**Thinking is worth 17.7 points to Qwen3.5-2B on BFCL tool calling and nothing measurable to Gemma 4 E2B. On GSM8K math, thinking alone adds 3.7 points to Qwen, a range that includes zero. With both models thinking, Gemma still leads by 10.3 points on math and 5.0 on tool calls. Qwen's thinking runs to a median of 7,607 tokens per math answer against Gemma's 808.**
 
 ---
 
@@ -89,7 +89,7 @@ JEV_GEN_MAX_TOKENS=32000 python3 gen_eval.py run http://127.0.0.1:8080 Qwen/Qwen
 
 Qwen's card recommends an output length of 32,768 tokens for most queries. Both models got a 32,000-token limit on both tasks.
 
-At that length Qwen's math takes hours on this card, so GSM8K is a fixed random 300 of its 1,319 problems, drawn once with a fixed seed and used for both models. BFCL is all 400. With thinking off, the 300 score Qwen at 0.730 and Gemma at 0.927, against 0.734 and 0.901 on all 1,319: the sample matches the full set for Qwen and favours Gemma by 2.6 points.
+At that length Qwen's math takes hours on this card, so GSM8K is a fixed random 300 of its 1,319 problems, drawn once with a fixed seed and used for both models. BFCL is all 400. With thinking off, the 300 score Qwen at 0.730 and Gemma at 0.927, against 0.734 and 0.901 on all 1,319: the sample matches the full set for Qwen and favours Gemma by 2.6 points. Gemma's math leads below are about 3 points larger than the full set would give: with thinking off its lead is 16.7 points on all 1,319 and 19.7 on the 300.
 
 ---
 
@@ -125,7 +125,7 @@ Step 4 changed two things at once: thinking, and greedy decoding to each vendor'
 
 #### Step 5 — Separate Thinking From Sampling
 
-One more run holds the sampling and turns thinking off: the same server, files, limit, problems and settings as Step 4, with `--reasoning off`. Three runs per model, compared in pairs:
+One more run holds the sampling and turns thinking off: the same server, files, limit, problems and settings as Step 4, with `--reasoning off`. The greedy runs kept the first article's 2,048 and 512-token limits, and the sampled runs had 32,000, so the first step changes the sampling and the limit together. Three runs per model, compared in pairs:
 
 | GTX 1650 Ti | Greedy, thinking off | Vendor sampling, thinking off | Vendor sampling, thinking on |
 | :--- | ---: | ---: | ---: |
@@ -134,7 +134,7 @@ One more run holds the sampling and turns thinking off: the same server, files, 
 | Gemma, GSM8K | 0.927 | 0.910 | **0.930** 🥇 |
 | Gemma, BFCL | **0.917** 🥇 | 0.885 | 0.887 |
 
-| Change, 95% range | Sampling alone | Thinking alone |
+| Change, 95% range | Sampling and limit | Thinking alone |
 | :--- | :--- | :--- |
 | Qwen, GSM8K | +0.060 (+0.003 to +0.117) | +0.037 (−0.013 to +0.087) |
 | Qwen, BFCL | −0.028 (−0.068 to +0.013) | **+0.177 (+0.128 to +0.228)** |
@@ -142,8 +142,8 @@ One more run holds the sampling and turns thinking off: the same server, files, 
 | Gemma, BFCL | −0.033 (−0.055 to −0.013) | +0.003 (−0.025 to +0.030) |
 
 - **On tool calls, thinking is the whole of Qwen's gain**: +17.7 points. With thinking off, Qwen still answers 83 of 400 in prose; with thinking on, 8.
-- **On math, most of Qwen's gain is sampling.** Greedy, 26 of 300 replies ran past the 2,048-token limit; with the card's settings, including `presence_penalty` 1.5, 4 of 300 reached 32,000. Thinking adds 3.7 points on top, a range that includes zero.
-- **Gemma's 3-point BFCL loss is the sampling**, at temperature 1.0. Thinking changes neither of Gemma's scores beyond its range.
+- **On math, thinking adds 3.7 points to Qwen**, a range that includes zero. The other 6.0 points come with the sampling and the longer limit together. Greedy, 26 of 300 replies reached the 2,048-token limit, 24 of them with no loop at the end; with the card's settings and 32,000 tokens, 4 of 300 reached the limit. Scored as right, those 26 would put greedy at 0.797, level with the sampled 0.790.
+- **Gemma's 3-point BFCL loss is the sampling.** Gemma's greedy replies stayed well inside both limits (longest 1,586 tokens on math, 92 on tool calls), so for Gemma that column is sampling alone. Thinking changes neither of Gemma's scores beyond its range.
 
 At matched settings Gemma leads by 12.0 and 22.5 points with thinking off, and by 10.3 and 5.0 with thinking on.
 
@@ -176,7 +176,7 @@ On math, Qwen spends about 14 times Gemma's tokens and 22 times its time for eac
 
 #### 🔎 Tip: Do Not Run Qwen Greedy
 
-Greedy decoding is the usual setting for repeatable scores. With thinking on it loops Qwen: 9 of 16 math problems ended in repeated text. With thinking off it costs Qwen 6.0 points on math, from runaway answers. Use the card's settings, and keep `presence_penalty` in them; it is the one aimed at repetition.
+Greedy decoding is the usual setting for repeatable scores. With thinking on it loops Qwen: 9 of 16 math problems ended in repeated text, and 5 of 16 were right against 12 of 16 at the card's settings. Use the card's settings, and keep `presence_penalty` in them; it is the one aimed at repetition.
 
 ---
 
@@ -191,8 +191,8 @@ Greedy decoding is the usual setting for repeatable scores. With thinking on it 
 | GTX 1650 Ti, thinking on | Qwen3.5-2B Q4_0 | Gemma 4 E2B QAT Q4_0 |
 | :--- | :--- | :--- |
 | GSM8K / BFCL | 0.827 / 0.838 | **0.930 / 0.887** 🥇 |
-| Gain from thinking alone | **+3.7 / +17.7** 🥇 | +2.0 / +0.3 |
-| Gain from sampling alone | **+6.0 / −2.8** 🥇 | −1.7 / −3.3 |
+| Gain from thinking alone | +3.7 / +17.7 | +2.0 / +0.3 |
+| Gain from sampling and limit | +6.0 / −2.8 | −1.7 / −3.3 |
 | GSM8K median reply | 7,607 tokens | **808 tokens** 🥇 |
 | GSM8K, 300 problems | 10.1 hours | **31 minutes** 🥇 |
 | Greedy thinking | loops | **runs** 🥇 |
@@ -209,16 +209,16 @@ If you use Qwen, use its card's sampling settings, and turn thinking on for tool
 
 #### Summary
 
-The goal of this article was to measure Qwen3.5-2B and Gemma 4 E2B with thinking on, where the first article ran them with thinking off. The key to the solution was running each model at its vendor's thinking-mode sampling with room to think, and a third run with the same sampling and thinking off, so that every answer pairs against the same question under each change alone. The results were:
+The goal of this article was to measure Qwen3.5-2B and Gemma 4 E2B with thinking on, where the first article ran them with thinking off. The key to the solution was running each model at its vendor's thinking-mode sampling with room to think, and a third run with the same sampling and thinking off, so that thinking's effect is measured with everything else held, question by question. The results were:
 
 - 🟢 **Thinking lifts Qwen on tool calls**: +17.7 points on BFCL, with replies that skip the tool down from 83 to 8.
-- ⚠️ **On math, most of Qwen's rise is sampling**: +6.0 from the card's settings, +3.7 from thinking, a range that includes zero.
+- ⚠️ **On math, thinking adds little to Qwen**: +3.7, a range that includes zero; the other +6.0 came with the card's sampling and the longer limit together.
 - ❌ **Thinking does not lift Gemma**: +2.0 on GSM8K and +0.3 on BFCL, neither clear of zero.
 - 🟢 **Gemma still leads**: by 10.3 and 5.0 points with both thinking, and by 10.0 and 8.0 with only Qwen thinking.
 - ⚠️ **Qwen's math thinking is expensive**: 13,742 tokens and 146 seconds per right answer, against Gemma's 971 and 6.7.
 - ⚠️ **Greedy decoding loops Qwen's thinking**; its card's sampling settings fix it.
 
-Scope: one GTX 1650 Ti (4 GB), llama.cpp `7182ef71e`, the same Q4_0 files as the first article, measured 2026-10-18 and 2026-10-19. Two tasks: GSM8K on a fixed random 300 of 1,319 problems and BFCL simple on all 400; the classification suite was not run with thinking on. The two sampled runs used each vendor's thinking-mode sampling and a 32,000-token limit, 4 requests at a time, once per model; the greedy thinking-off records are from the first article's runs, with 2,048 and 512-token limits, 8 at a time. Thinking with greedy decoding was run on 16 problems only. Sampled runs give different text on a re-run. The scoring code and the card were set up for this repository's Gemma work.
+Scope: one GTX 1650 Ti (4 GB), llama.cpp `7182ef71e`, the same Q4_0 files as the first article, measured 2026-10-18 and 2026-10-19. Two tasks: GSM8K on a fixed random 300 of 1,319 problems and BFCL simple on all 400; the classification suite was not run with thinking on. The two sampled runs used each vendor's thinking-mode sampling and a 32,000-token limit, 4 requests at a time, once per model; the greedy thinking-off records are from the first article's runs, with 2,048 and 512-token limits, 8 at a time. Thinking with greedy decoding was run on 16 problems only. Each sampled setting was run once, and a re-run gives different text, so the 95% ranges cover the choice of questions but not run-to-run variation. With `--reasoning off`, Gemma still wrote reasoning on 26 of 400 sampled BFCL replies, 25 of them right; the greedy runs have none. The task prompts and scoring code were written for this repository's Gemma work.
 
 The strategy for measuring thinking on Qwen3.5-2B and Gemma 4 E2B on a local GPU was validated with an incremental step by step approach.
 

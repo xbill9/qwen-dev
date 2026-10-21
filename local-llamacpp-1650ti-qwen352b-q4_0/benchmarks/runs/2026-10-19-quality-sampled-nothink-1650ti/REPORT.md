@@ -1,12 +1,12 @@
 # 2026-10-19 — thinking off at vendor sampling: splitting sampling from thinking, GTX 1650 Ti
 
-**Answer: on tool calls Qwen's gain is thinking; on math most of it is sampling.** The 2026-10-18 run turned
+**Answer: on tool calls Qwen's gain is thinking; on math thinking adds 3.7 points, a range that includes zero.** The 2026-10-18 run turned
 thinking on and switched from greedy decoding to each vendor's thinking-mode sampling in one step. This run
 holds the sampling and turns thinking off, so it splits the two:
 
 | Qwen3.5-2B Q4_0 | GSM8K, 300 | 95% range | BFCL, 400 | 95% range |
 | --- | ---: | --- | ---: | --- |
-| Sampling (greedy off → sampled off) | +0.060 | +0.003 to +0.117 | −0.028 | −0.068 to +0.013 |
+| Sampling and limit (greedy off → sampled off) | +0.060 | +0.003 to +0.117 | −0.028 | −0.068 to +0.013 |
 | Thinking (sampled off → sampled on) | +0.037 | −0.013 to +0.087 | **+0.177** | +0.128 to +0.228 |
 | Both | +0.097 | +0.043 to +0.150 | +0.150 | +0.100 to +0.198 |
 
@@ -31,12 +31,14 @@ same 300 GSM8K ids and all 400 BFCL. Gemma's records are in
 
 ## What the sampling changes
 
-- **Qwen's math replies stop running away.** Greedy with thinking off, 26 of 300 GSM8K replies hit the
+- **Qwen's math replies stop hitting the limit.** Greedy with thinking off, 26 of 300 GSM8K replies hit the
   2,048-token limit; at vendor sampling (`presence_penalty` 1.5) 4 of 300 hit the 32,000 limit, with a median
-  reply of 430 tokens against 365. That is where the +6.0 comes from; the range only just clears zero.
+  reply of 430 tokens against 365. The greedy run also had a 2,048-token limit against 32,000 here, and 24 of its 26 cut-off replies do not end in a loop; scored as right they would give 0.797 against 0.790 (`checks.txt`). So the +6.0 belongs to sampling and the limit together, and this run does not split them.
 - **Qwen still answers tool calls in prose with thinking off**: 83 of 400 BFCL replies make no call at vendor
   sampling, against 88 greedy and 8 with thinking on.
-- **Gemma loses 3.3 points on BFCL to sampling at temperature 1.0**, and thinking does not win them back.
+- **Gemma loses 3.3 points on BFCL to sampling**; its greedy replies stayed well inside both limits (longest 1,586 and 92 tokens), and thinking does not win them back.
+- **Gemma sometimes thinks with `--reasoning off` at vendor sampling**: 26 of 400 BFCL replies carry reasoning
+  (25 right); the greedy runs have none (`checks.txt`).
 
 ## Run time
 
@@ -47,5 +49,5 @@ same 300 GSM8K ids and all 400 BFCL. Gemma's records are in
 
 ## Not measured
 
-Thinking on with greedy decoding beyond the 16-problem trial; other sampling settings; repeat runs, so the
+Greedy thinking-off at a 32,000-token limit, which would separate sampling from the limit for Qwen. Thinking on with greedy decoding beyond the 16-problem trial; other sampling settings; repeat runs, so the
 spread of one sampled run is not measured.
