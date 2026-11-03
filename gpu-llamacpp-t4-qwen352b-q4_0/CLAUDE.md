@@ -1,4 +1,4 @@
-# CLAUDE.md — local-llamacpp-1650ti-qwen352b-q4_0
+# CLAUDE.md — gpu-llamacpp-t4-qwen352b-q4_0
 
 Guidance for working inside this rig. The siblings are not layers; nothing is
 imported across a rig boundary. Read this file before changing anything.
@@ -7,26 +7,42 @@ imported across a rig boundary. Read this file before changing anything.
 
 `llama-server` from `ggml-org/llama.cpp`, driven directly, serving
 **Qwen/Qwen3.5-2B** (revision `15852e8c`) as a Q4_0 GGUF built here, off the
-same **GTX 1650 Ti** (TU117, sm_75, 4 GiB, no tensor cores) in the laptop
-`yogagpu` that serves `local-llamacpp-1650ti-2b-q4_0`. One process, no control
-plane, Ctrl-C is a complete teardown.
+**Tesla T4** (TU104, sm_75, tensor cores, 15,360 MiB, 70 W) attached to the
+Compute Engine VM `debian13` (`n1-standard-2`, 2 vCPU, 7.3 GiB RAM, `us-west2-b`)
+that serves the `gpu-vllm-t4-*` rigs. One process, no control plane, Ctrl-C is a
+complete teardown.
 
-**Forked 2026-10-16 from `local-llamacpp-3050oem-qwen352b-q4_0`. Slot 3 is the
-only slot that differs**: same model, runtime, llama.cpp commit (`7182ef71e`) and
-serving flags, except `HOST=127.0.0.1` as on every rig on this laptop. Against
-`local-llamacpp-1650ti-2b-q4_0` only slot 4 differs, so this card now carries a
-Qwen/Gemma pair measured on one binary.
+**Forked 2026-10-19 from `local-llamacpp-1650ti-qwen352b-q4_0`. Slots 1 and 3
+differ**: slot 1 is `gpu` because a cloud VM keeps its platform value (`NAMING.md`),
+as for `gpu-vllm-t4-2b`. Same model, runtime, llama.cpp commit (`7182ef71e`) and
+serving flags, except `-t 2 -tb 2` for the 2 vCPUs and `CACHE_RAM=2048` (below).
 
-## Model — BUILT 2026-10-16 ON THIS HOST
+## The vLLM server shares the card
 
-- `make download` then `make quantize`, as on the sister. **This host's file
-  hashes `bd99d5ae…`, the 3050 host's `1c27608b…`**: same size, same revision,
-  same commit, and the bf16 GGUFs differ too, so the difference enters at
-  `convert_hf_to_gguf.py`. Which bytes differ is untested. On 65 suite prompts
-  the two files pick the same label 62 times, median label-probability gap
-  0.018 against Q4_0-vs-fp32's 0.115 (`benchmarks/runs/2026-10-16-parity-crosshost-1650ti`).
-  `MODEL_SHA256` pins this host's file.
-- File contents as on the sister: 194 matrices Q4_0, tied `token_embd` Q6_K,
+**vLLM on this VM holds the same T4 (13.6 GiB) and port 8000.** Stop it with
+`~/bin/vllm-t4 stop` before `make serve`, and start it again with
+`~/bin/vllm-t4 start` afterwards. This rig serves on 8080, loopback only.
+
+## Host limits
+
+- **RAM is 7.3 GiB.** llama-server's host prompt cache (`-cram`) defaults to
+  8,192 MiB; at the default, `-c 32768 --parallel 8` on Qwen reached 6.0 GB
+  resident and 6 GB of swap within two minutes (each Qwen entry is ~41 MiB).
+  `CACHE_RAM=2048` holds it near 3.5 GB. The prompt cache changes no score
+  (`../local-llamacpp-3050oem-2b-q4_0/benchmarks/runs/2026-10-14-accuracy-cache-3050oem`).
+- **The root disk is 32 GB and nearly full**, so models, llama.cpp and the CUDA
+  13.4 toolkit live on `/opt1`, with a 16 GiB `/opt1/swapfile`.
+- `make build` runs at `-j2` (`BUILD_JOBS`). Never pass a bare `-j`.
+
+## Model — BUILT 2026-10-19 ON THIS HOST
+
+- `make download` then `make quantize`. **This host's Q4_0 hashes `d2bc253a…`**,
+  against `bd99d5ae…` on the 1650 Ti host and `1c27608b…` on the 3050 host: same
+  size, revision and commit. The bf16 GGUF (`dc07c774…`) also differs from both
+  other hosts'. Converting twice here gives identical bytes, so the converter is
+  deterministic per host and the difference comes from the software around it.
+  Which tensors differ is untested. `MODEL_SHA256` pins this host's file.
+- File contents as on the sisters: 194 matrices Q4_0, tied `token_embd` Q6_K,
   F32 norms, Qwen's MTP layer `blk.24.nextn.*` unused unless drafting.
 - No lazy tensors: everything is resident. Gemma's `per_layer_token_embd`
   rules do not apply here.
@@ -35,48 +51,38 @@ Qwen/Gemma pair measured on one binary.
 
 ## Measurements
 
-`benchmarks/runs/2026-10-16-first-light-1650ti/` — llama-bench pp512/pp2048/tg128,
-r=5, Qwen and Gemma E2B alternating on one binary (`7182ef7`, sm_75):
+`benchmarks/runs/2026-10-19-first-light-t4/` — llama-bench pp512/pp2048/tg128,
+r=5, Qwen and Gemma E2B's exact QAT Q4_0 alternating on one binary (`7182ef71e`,
+sm_75), means of two cells each:
 
 | | pp512 | pp2048 | tg128 |
 | --- | ---: | ---: | ---: |
-| Qwen3.5-2B Q4_0 | 511.50 | 498.82 | **85.26** |
-| Gemma 4 E2B exact Q4_0 | 358.74 | 330.99 | 81.17 |
-| Qwen / Gemma | 1.426x | 1.507x | 1.050x |
+| Qwen3.5-2B Q4_0 | 4387 | 4548 | **128.90** |
+| Gemma 4 E2B exact Q4_0 | 3631 | 3545 | 116.48 |
+| Qwen / Gemma | 1.208x | 1.283x | 1.107x |
 
-- On the 3050 the same pair is 1.235x / 1.312x / 1.123x. Against the sister
-  this card runs Qwen at 0.642x decode and 0.094–0.098x prefill.
-- `-fa 1` against `-fa 0`: 1.007x prefill, 1.013x decode. On.
-- **2951 MiB of 4096** serving at `-c 131072`, no drafter. Gemma's sibling on
-  this card serves 8,192.
-- One sanity chat ("what is a TPU?") came back fluent and wrong, as on the sister.
+- The T4 decodes both models at 0.97–0.98x the RTX 3050 and 1.44–1.51x the GTX
+  1650 Ti; it prefills at 0.84–0.88x the 3050 and 8.6–10.7x the 1650 Ti.
+- `-fa 1` against `-fa 0` on Qwen: 1.065–1.078x prefill, 1.028x decode. On.
+- The card held 1590 MHz, its maximum, through every cell and peaked at 58 °C.
+- **Serving VRAM at `-c 131072` is not measured.** At `-c 8192` Qwen holds 1439 MiB.
 
-**Answer quality on this card matches the sister's**
-(`benchmarks/runs/2026-10-16-quality-1650ti/`, both files, same flags as the
-3050 runs): Q4_0 suite 0.430, GSM8K 0.734, BFCL 0.688 against the 3050's
-0.422 / 0.743 / 0.710, only the suite's +0.007 clear of zero; bf16 0.488 /
-0.807 / 0.762 against 0.488 / 0.798 / 0.765. Q4_0 costs 5.8–7.5 points per
-task; Gemma E2B (3050) leads Q4_0 by 25.3 / 16.4 / 23.7. Runs took 1.7–6.9x
-as long as on the 3050, with the card below its first-light clocks.
+**MTP head as a drafter** (`benchmarks/runs/2026-10-19-spec-mtp-vs-gemma-t4/`):
+one request at a time, 1 drafted token gives 1.096x greedy (130.9 tok/s) and
+1.078x sampled, greedy text identical to no drafting; 2 and 3 tokens are slower
+sampled. Gemma's QAT drafter at 1 token gives 1.224x (131.7), so with both
+drafting the two tie (0.99x). Not served: `SPEC_DRAFT_MODEL` stays empty.
 
-**bf16 arm** (`../local-llamacpp-1650ti-qwen352b/`): does not fit this card whole, so 6 of 24 blocks
-run on the CPU; 20.22 tok/s decode (0.24x this file), prefill 0.96x, 3207 MiB at `-c 8192`. Its logits
-match the 3050 host's bf16 on all 65 parity prompts.
+**Answer quality** (`benchmarks/runs/2026-10-19-quality-t4/`, `-c 32768
+--parallel 8`, both models and Gemma's drafter on one binary): Gemma E2B leads
+this file by 26.0 suite points (0.681 vs 0.422), 15.8 on GSM8K (0.892 vs 0.735)
+and 22.5 on BFCL (0.922 vs 0.698), within 1 point of the 1650 Ti's gap. Gemma
+scores on this card what it scored on the 1650 Ti; Qwen's suite is 0.8 points
+lower, the 3050 host's file's score. Gemma's drafter at 1 token leaves all three
+level, 86.5% of drafted tokens accepted, GSM8K 1.42x faster.
 
-**Against Gemma E2B on this card, 2026-10-17**: on one binary and flags Gemma's
-QAT Q4_0 leads this file by 25.1 / 16.7 / 23.0 points and the bf16 file by
-19.3 / 9.4 / 15.5 (`../local-llamacpp-1650ti-2b-q4_0/benchmarks/runs/2026-10-17-quality-vs-qwen-1650ti`);
-Gemma rounded without QAT still leads by 20.2 / 14.7 / 20.7
-(`../local-llamacpp-1650ti-2b-q4_0rtn/benchmarks/runs/2026-10-17-quality-rtn-1650ti`).
-
-**MTP head as a drafter** (`benchmarks/runs/2026-10-17-spec-mtp-vs-gemma-1650ti`,
-`.../2026-10-17-quality-mtp-1650ti`): one request at a time, 1 drafted token
-gives 1.107x greedy (91.0 tok/s) and 1.052x sampled, greedy text identical;
-Gemma's drafter reaches 92.1. At `--parallel 8` it leaves GSM8K and BFCL level
-and makes each task 1.08–1.09x slower, 90.1% of drafts accepted. Not served:
-`SPEC_DRAFT_MODEL` stays empty.
-
-**Not measured here:** concurrency sweeps, long context, q8_0 KV.
+**Not measured here:** concurrency sweeps, long context, q8_0 KV, Qwen bf16,
+Qwen's MTP head at 8 requests, thinking on.
 
 ## Inherited and still true here
 
@@ -87,12 +93,9 @@ and makes each task 1.08–1.09x slower, 90.1% of drafts accepted. Not served:
   `--parallel` slots. Its default `--model` and prompt text still name Gemma.
 - `start_model_server` spawns with `subprocess.Popen`, because asyncio's
   subprocess transport kills a live child when it is torn down.
-- Port 8080 is shared with every `local-llamacpp-*` rig. Only one serves at a
-  time on a host.
-- llama.cpp logs `common_fit_params: failed to fit params ... abort` at load:
-  the automatic fit stands down because `-ngl` is set. The model serves.
-- `make build` runs at `-j6`: an unbounded CUDA build OOMs this 15 GiB laptop.
-  Never pass a bare `-j`.
+- On the sisters llama.cpp logs `common_fit_params: failed to fit params ... abort`
+  at load because `-ngl` is set, and the model serves. None of this rig's server
+  logs carries that line.
 
 ## Conventions
 
