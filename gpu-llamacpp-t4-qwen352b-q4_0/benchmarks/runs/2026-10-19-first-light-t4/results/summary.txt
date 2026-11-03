@@ -1,0 +1,8 @@
+qwen-fa1: pp512 4443.14 ± 230.97  pp2048 4581.56 ± 22.63  tg128 130.08 ± 0.22
+gemma-fa1: pp512 3685.27 ± 130.27  pp2048 3556.69 ± 9.27  tg128 116.78 ± 0.17
+qwen-fa0: pp512 4068.13 ± 650.56  pp2048 4268.34 ± 26.03  tg128 125.42 ± 0.32
+qwen-fa1-rep: pp512 4331.69 ± 290.12  pp2048 4513.83 ± 21.98  tg128 127.72 ± 0.26
+gemma-fa1-rep: pp512 3577.14 ± 335.74  pp2048 3532.38 ± 16.42  tg128 116.17 ± 0.33
+pp512: qwen 4387.41  gemma 3631.20  qwen/gemma 1.208x  qwen fa1/fa0 1.078x  qwen rep/first 0.975x  gemma rep/first 0.971x
+pp2048: qwen 4547.70  gemma 3544.53  qwen/gemma 1.283x  qwen fa1/fa0 1.065x  qwen rep/first 0.985x  gemma rep/first 0.993x
+tg128: qwen 128.90  gemma 116.48  qwen/gemma 1.107x  qwen fa1/fa0 1.028x  qwen rep/first 0.982x  gemma rep/first 0.995x

@@ -1,0 +1,27 @@
+2026-10-19 17:34:03 gpu=50, 300 MHz BEGIN qwen-q4_0 d2bc253a942eb422 flags=[] version: 0.7.0-dev (build 11699, commit 7182ef71e)
+2026-10-19 17:34:10 gpu=50, 585 MHz server up: 1856 MiB
+2026-10-19 17:34:11 gpu=51, 585 MHz START suite
+2026-10-19 17:43:05 gpu=77, 1590 MHz END suite rc=0
+2026-10-19 17:43:05 gpu=77, 1590 MHz START gsm8k
+2026-10-19 18:25:26 gpu=76, 1515 MHz END gsm8k rc=0 {"task": "gsm8k", "max_tokens": 2048, "n": 1319, "right": 969, "accuracy": 0.7346, "errors": 0, "truncated": 100, "wall_s": 2540.4}
+2026-10-19 18:25:26 gpu=76, 1560 MHz START bfcl
+2026-10-19 18:29:07 gpu=75, 1440 MHz END bfcl rc=0 {"task": "bfcl_simple", "max_tokens": 512, "n": 400, "right": 279, "accuracy": 0.6975, "errors": 0, "truncated": 14, "wall_s": 220.7}
+2026-10-19 18:29:08 gpu=74, 1500 MHz DONE qwen-q4_0
+2026-10-19 18:29:20 gpu=67, 300 MHz BEGIN gemma-none 419db9a6bf3bc15d flags=[-ot per_layer_token_embd\.weight=CUDA0] version: 0.7.0-dev (build 11699, commit 7182ef71e)
+2026-10-19 18:29:31 gpu=64, 585 MHz server up: 3020 MiB
+2026-10-19 18:29:32 gpu=64, 585 MHz START suite
+2026-10-19 18:37:07 gpu=73, 1350 MHz END suite rc=0
+2026-10-19 18:37:07 gpu=73, 1350 MHz START gsm8k
+2026-10-19 19:09:42 gpu=75, 1545 MHz END gsm8k rc=0 {"task": "gsm8k", "max_tokens": 2048, "n": 1319, "right": 1177, "accuracy": 0.8923, "errors": 0, "truncated": 3, "wall_s": 1953.7}
+2026-10-19 19:09:42 gpu=75, 1575 MHz START bfcl
+2026-10-19 19:11:13 gpu=75, 1500 MHz END bfcl rc=0 {"task": "bfcl_simple", "max_tokens": 512, "n": 400, "right": 369, "accuracy": 0.9225, "errors": 0, "truncated": 0, "wall_s": 90.9}
+2026-10-19 19:11:15 gpu=73, 585 MHz DONE gemma-none
+2026-10-19 19:11:24 gpu=68, 300 MHz BEGIN gemma-draft 419db9a6bf3bc15d flags=[-ot per_layer_token_embd\.weight=CUDA0 -md /opt1/models/gemma-4-E2B-it-qat-assistant/gemma-4-E2B-it-qat-assistant-q4_0-exact.gguf --spec-type draft-mtp -ngld all --spec-draft-n-max 1] version: 0.7.0-dev (build 11699, commit 7182ef71e)
+2026-10-19 19:11:38 gpu=64, 585 MHz server up: 3088 MiB
+2026-10-19 19:11:39 gpu=64, 585 MHz START suite
+2026-10-19 19:19:52 gpu=66, 585 MHz END suite rc=0
+2026-10-19 19:19:52 gpu=66, 585 MHz START gsm8k
+2026-10-19 19:42:50 gpu=75, 1560 MHz END gsm8k rc=0 {"task": "gsm8k", "max_tokens": 2048, "n": 1319, "right": 1180, "accuracy": 0.8946, "errors": 0, "truncated": 3, "wall_s": 1377.3}
+2026-10-19 19:42:50 gpu=75, 1575 MHz START bfcl
+2026-10-19 19:44:13 gpu=74, 1530 MHz END bfcl rc=0 {"task": "bfcl_simple", "max_tokens": 512, "n": 400, "right": 369, "accuracy": 0.9225, "errors": 0, "truncated": 0, "wall_s": 83.1}
+2026-10-19 19:44:18 gpu=71, 585 MHz DONE gemma-draft

@@ -1,0 +1,1 @@
+d2bc253a942eb422bb995b1ac39b67a897ff9861421682549e804517fc5d9ad8  /opt1/models/Qwen3.5-2B-gguf/Qwen3.5-2B-Q4_0.gguf

@@ -1,0 +1,13 @@
+2026-10-19 17:09:20 START version: 0.7.0-dev (build 11699, commit 7182ef71e)
+2026-10-19 17:09:54 START bench
+2026-10-19 17:12:21 END bench rc=0
+2026-10-19 17:12:22 START spec_ab
+2026-10-19 17:30:32 END spec_ab rc=0
+2026-10-19 17:30:32 START quality
+2026-10-19 17:33:22 START version: 0.7.0-dev (build 11699, commit 7182ef71e)
+2026-10-19 17:33:58 START quality
+2026-10-19 19:44:19 END quality rc=0
+2026-10-19 19:44:19 START vllm
+2026-10-19 20:49:08 END vllm rc=0
+2026-10-19 20:49:16 restart vLLM: vllm-t4: pid 161731, log /home/xbill_glitnir_com/gemma4-dev/gpu-vllm-t4-2b-w4a16/run/vllm.log
+2026-10-19 20:49:16 CHAIN DONE
