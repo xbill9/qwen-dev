@@ -1,0 +1,553 @@
+{
+ "suite": {
+  "Qwen Q4_0, T4": {
+   "n": 3880,
+   "acc": 0.42190721649484536,
+   "coverage": 0.9030927835051547
+  },
+  "Gemma E2B, T4": {
+   "n": 3880,
+   "acc": 0.6814432989690722,
+   "coverage": 0.9623711340206186
+  },
+  "Gemma E2B + drafter, T4": {
+   "n": 3880,
+   "acc": 0.6817010309278351,
+   "coverage": 0.9615979381443299
+  },
+  "Qwen Q4_0, 1650 Ti": {
+   "n": 3880,
+   "acc": 0.4298969072164949,
+   "coverage": 0.902319587628866
+  },
+  "Gemma E2B, 1650 Ti": {
+   "n": 3880,
+   "acc": 0.6806701030927835,
+   "coverage": 0.9628865979381444
+  }
+ },
+ "suite_pairs": [
+  {
+   "a": "Gemma E2B, T4",
+   "b": "Qwen Q4_0, T4",
+   "n": 3880,
+   "only_in_ref": 0,
+   "only_in_test": 0,
+   "acc_ref": 0.6814432989690722,
+   "acc_test": 0.42190721649484536,
+   "diff": -0.2595360824742268,
+   "diff_lo": -0.2804123711340206,
+   "diff_hi": -0.23917525773195877,
+   "ref_right_test_wrong": 1432,
+   "ref_wrong_test_right": 425
+  },
+  {
+   "a": "Gemma E2B, T4",
+   "b": "Gemma E2B + drafter, T4",
+   "n": 3880,
+   "only_in_ref": 0,
+   "only_in_test": 0,
+   "acc_ref": 0.6814432989690722,
+   "acc_test": 0.6817010309278351,
+   "diff": 0.0002577319587628866,
+   "diff_lo": -0.003092783505154639,
+   "diff_hi": 0.003865979381443299,
+   "ref_right_test_wrong": 25,
+   "ref_wrong_test_right": 26
+  },
+  {
+   "a": "Qwen Q4_0, 1650 Ti",
+   "b": "Qwen Q4_0, T4",
+   "n": 3880,
+   "only_in_ref": 0,
+   "only_in_test": 0,
+   "acc_ref": 0.4298969072164949,
+   "acc_test": 0.42190721649484536,
+   "diff": -0.007989690721649484,
+   "diff_lo": -0.01365979381443299,
+   "diff_hi": -0.002061855670103093,
+   "ref_right_test_wrong": 79,
+   "ref_wrong_test_right": 48
+  },
+  {
+   "a": "Gemma E2B, 1650 Ti",
+   "b": "Gemma E2B, T4",
+   "n": 3880,
+   "only_in_ref": 0,
+   "only_in_test": 0,
+   "acc_ref": 0.6806701030927835,
+   "acc_test": 0.6814432989690722,
+   "diff": 0.0007731958762886598,
+   "diff_lo": -0.003092783505154639,
+   "diff_hi": 0.004639175257731959,
+   "ref_right_test_wrong": 25,
+   "ref_wrong_test_right": 28
+  },
+  {
+   "a": "Gemma E2B, 1650 Ti",
+   "b": "Qwen Q4_0, 1650 Ti",
+   "n": 3880,
+   "only_in_ref": 0,
+   "only_in_test": 0,
+   "acc_ref": 0.6806701030927835,
+   "acc_test": 0.4298969072164949,
+   "diff": -0.25077319587628866,
+   "diff_lo": -0.27139175257731957,
+   "diff_hi": -0.2309278350515464,
+   "ref_right_test_wrong": 1408,
+   "ref_wrong_test_right": 435
+  }
+ ],
+ "subsets": {
+  "aegis2": {
+   "n": 250,
+   "only_in_ref": 0,
+   "only_in_test": 0,
+   "acc_ref": 0.744,
+   "acc_test": 0.648,
+   "diff": -0.096,
+   "diff_lo": -0.168,
+   "diff_hi": -0.028,
+   "ref_right_test_wrong": 52,
+   "ref_wrong_test_right": 28
+  },
+  "boolq": {
+   "n": 300,
+   "only_in_ref": 0,
+   "only_in_test": 0,
+   "acc_ref": 0.6233333333333333,
+   "acc_test": 0.71,
+   "diff": 0.08666666666666667,
+   "diff_lo": 0.0033333333333333335,
+   "diff_hi": 0.17,
+   "ref_right_test_wrong": 69,
+   "ref_wrong_test_right": 95
+  },
+  "civil_comments": {
+   "n": 300,
+   "only_in_ref": 0,
+   "only_in_test": 0,
+   "acc_ref": 0.9066666666666666,
+   "acc_test": 0.26666666666666666,
+   "diff": -0.64,
+   "diff_lo": -0.7033333333333334,
+   "diff_hi": -0.5766666666666667,
+   "ref_right_test_wrong": 208,
+   "ref_wrong_test_right": 16
+  },
+  "helpsteer2": {
+   "n": 249,
+   "only_in_ref": 0,
+   "only_in_test": 0,
+   "acc_ref": 0.3614457831325301,
+   "acc_test": 0.26506024096385544,
+   "diff": -0.0963855421686747,
+   "diff_lo": -0.1686746987951807,
+   "diff_hi": -0.0321285140562249,
+   "ref_right_test_wrong": 52,
+   "ref_wrong_test_right": 28
+  },
+  "massive-de-DE": {
+   "n": 350,
+   "only_in_ref": 0,
+   "only_in_test": 0,
+   "acc_ref": 0.7371428571428571,
+   "acc_test": 0.4057142857142857,
+   "diff": -0.3314285714285714,
+   "diff_lo": -0.38857142857142857,
+   "diff_hi": -0.26857142857142857,
+   "ref_right_test_wrong": 130,
+   "ref_wrong_test_right": 14
+  },
+  "massive-en-US": {
+   "n": 350,
+   "only_in_ref": 0,
+   "only_in_test": 0,
+   "acc_ref": 0.8028571428571428,
+   "acc_test": 0.5914285714285714,
+   "diff": -0.21142857142857144,
+   "diff_lo": -0.26285714285714284,
+   "diff_hi": -0.15714285714285714,
+   "ref_right_test_wrong": 86,
+   "ref_wrong_test_right": 12
+  },
+  "multinli": {
+   "n": 299,
+   "only_in_ref": 0,
+   "only_in_test": 0,
+   "acc_ref": 0.6889632107023411,
+   "acc_test": 0.3110367892976589,
+   "diff": -0.3779264214046823,
+   "diff_lo": -0.45819397993311034,
+   "diff_hi": -0.29431438127090304,
+   "ref_right_test_wrong": 159,
+   "ref_wrong_test_right": 46
+  },
+  "paws": {
+   "n": 250,
+   "only_in_ref": 0,
+   "only_in_test": 0,
+   "acc_ref": 0.748,
+   "acc_test": 0.552,
+   "diff": -0.196,
+   "diff_lo": -0.256,
+   "diff_hi": -0.136,
+   "ref_right_test_wrong": 61,
+   "ref_wrong_test_right": 12
+  },
+  "pubmedqa": {
+   "n": 250,
+   "only_in_ref": 0,
+   "only_in_test": 0,
+   "acc_ref": 0.588,
+   "acc_test": 0.192,
+   "diff": -0.396,
+   "diff_lo": -0.476,
+   "diff_hi": -0.316,
+   "ref_right_test_wrong": 122,
+   "ref_wrong_test_right": 23
+  },
+  "squad2": {
+   "n": 299,
+   "only_in_ref": 0,
+   "only_in_test": 0,
+   "acc_ref": 0.6923076923076923,
+   "acc_test": 0.7391304347826086,
+   "diff": 0.046822742474916385,
+   "diff_lo": -0.026755852842809364,
+   "diff_hi": 0.12040133779264214,
+   "ref_right_test_wrong": 57,
+   "ref_wrong_test_right": 71
+  },
+  "summeval-consistency": {
+   "n": 144,
+   "only_in_ref": 0,
+   "only_in_test": 0,
+   "acc_ref": 0.7638888888888888,
+   "acc_test": 0.09027777777777778,
+   "diff": -0.6736111111111112,
+   "diff_lo": -0.7638888888888888,
+   "diff_hi": -0.5763888888888888,
+   "ref_right_test_wrong": 105,
+   "ref_wrong_test_right": 8
+  },
+  "summeval-relevance": {
+   "n": 240,
+   "only_in_ref": 0,
+   "only_in_test": 0,
+   "acc_ref": 0.3125,
+   "acc_test": 0.16666666666666666,
+   "diff": -0.14583333333333334,
+   "diff_lo": -0.21666666666666667,
+   "diff_hi": -0.08333333333333333,
+   "ref_right_test_wrong": 52,
+   "ref_wrong_test_right": 17
+  },
+  "vitaminc-dev": {
+   "n": 599,
+   "only_in_ref": 0,
+   "only_in_test": 0,
+   "acc_ref": 0.7312186978297162,
+   "acc_test": 0.3572621035058431,
+   "diff": -0.3739565943238731,
+   "diff_lo": -0.42070116861435725,
+   "diff_hi": -0.32387312186978295,
+   "ref_right_test_wrong": 279,
+   "ref_wrong_test_right": 55
+  }
+ },
+ "gen": {
+  "gsm8k": [
+   {
+    "a": "Gemma E2B, T4",
+    "b": "Qwen Q4_0, T4",
+    "n": 1319,
+    "ref": 0.8923426838514026,
+    "test": 0.734647460197119,
+    "diff": -0.15769522365428354,
+    "lo": -0.1819560272934041,
+    "hi": -0.13419257012888552,
+    "ref_only": 243,
+    "test_only": 35
+   },
+   {
+    "a": "Gemma E2B, T4",
+    "b": "Gemma E2B + drafter, T4",
+    "n": 1319,
+    "ref": 0.8923426838514026,
+    "test": 0.8946171341925702,
+    "diff": 0.002274450341167551,
+    "lo": -0.008339651250947688,
+    "hi": 0.012130401819560273,
+    "ref_only": 22,
+    "test_only": 25
+   },
+   {
+    "a": "Qwen Q4_0, 1650 Ti",
+    "b": "Qwen Q4_0, T4",
+    "n": 1319,
+    "ref": 0.7338893100833965,
+    "test": 0.734647460197119,
+    "diff": 0.000758150113722517,
+    "lo": -0.019711902956785442,
+    "hi": 0.02122820318423048,
+    "ref_only": 93,
+    "test_only": 94
+   },
+   {
+    "a": "Gemma E2B, 1650 Ti",
+    "b": "Gemma E2B, T4",
+    "n": 1319,
+    "ref": 0.9006823351023503,
+    "test": 0.8923426838514026,
+    "diff": -0.008339651250947688,
+    "lo": -0.019711902956785442,
+    "hi": 0.003032600454890068,
+    "ref_only": 34,
+    "test_only": 23
+   },
+   {
+    "a": "Gemma E2B, 1650 Ti",
+    "b": "Qwen Q4_0, 1650 Ti",
+    "n": 1319,
+    "ref": 0.9006823351023503,
+    "test": 0.7338893100833965,
+    "diff": -0.16679302501895377,
+    "lo": -0.19029567854435178,
+    "hi": -0.14329037149355572,
+    "ref_only": 255,
+    "test_only": 35
+   }
+  ],
+  "bfcl_simple": [
+   {
+    "a": "Gemma E2B, T4",
+    "b": "Qwen Q4_0, T4",
+    "n": 400,
+    "ref": 0.9225,
+    "test": 0.6975,
+    "diff": -0.225,
+    "lo": -0.275,
+    "hi": -0.175,
+    "ref_only": 107,
+    "test_only": 17
+   },
+   {
+    "a": "Gemma E2B, T4",
+    "b": "Gemma E2B + drafter, T4",
+    "n": 400,
+    "ref": 0.9225,
+    "test": 0.9225,
+    "diff": 0.0,
+    "lo": 0.0,
+    "hi": 0.0,
+    "ref_only": 0,
+    "test_only": 0
+   },
+   {
+    "a": "Qwen Q4_0, 1650 Ti",
+    "b": "Qwen Q4_0, T4",
+    "n": 400,
+    "ref": 0.6875,
+    "test": 0.6975,
+    "diff": 0.01,
+    "lo": -0.0125,
+    "hi": 0.0325,
+    "ref_only": 8,
+    "test_only": 12
+   },
+   {
+    "a": "Gemma E2B, 1650 Ti",
+    "b": "Gemma E2B, T4",
+    "n": 400,
+    "ref": 0.9175,
+    "test": 0.9225,
+    "diff": 0.005,
+    "lo": -0.005,
+    "hi": 0.015,
+    "ref_only": 1,
+    "test_only": 3
+   },
+   {
+    "a": "Gemma E2B, 1650 Ti",
+    "b": "Qwen Q4_0, 1650 Ti",
+    "n": 400,
+    "ref": 0.9175,
+    "test": 0.6875,
+    "diff": -0.23,
+    "lo": -0.28,
+    "hi": -0.18,
+    "ref_only": 105,
+    "test_only": 13
+   }
+  ]
+ },
+ "shift": [
+  {
+   "task": "suite",
+   "t4": -0.2595360824742268,
+   "1650ti": -0.25077319587628866,
+   "moved": -0.008762886597938169
+  },
+  {
+   "task": "gsm8k",
+   "t4": -0.15769522365428354,
+   "1650ti": -0.16679302501895377,
+   "moved": 0.009097801364670227
+  },
+  {
+   "task": "bfcl",
+   "t4": -0.225,
+   "1650ti": -0.23,
+   "moved": 0.0050000000000000044
+  }
+ ],
+ "replies": {
+  "Qwen Q4_0, T4": {
+   "gsm8k_cut": 100,
+   "gsm8k_tokens": 702741,
+   "bfcl_no_call": 82,
+   "bfcl_tokens": 43678
+  },
+  "Gemma E2B, T4": {
+   "gsm8k_cut": 3,
+   "gsm8k_tokens": 527255,
+   "bfcl_no_call": 6,
+   "bfcl_tokens": 12759
+  },
+  "Gemma E2B + drafter, T4": {
+   "gsm8k_cut": 3,
+   "gsm8k_tokens": 527430,
+   "bfcl_no_call": 6,
+   "bfcl_tokens": 12752
+  },
+  "Qwen Q4_0, 1650 Ti": {
+   "gsm8k_cut": 107,
+   "gsm8k_tokens": 706288,
+   "bfcl_no_call": 88,
+   "bfcl_tokens": 44127
+  },
+  "Gemma E2B, 1650 Ti": {
+   "gsm8k_cut": 3,
+   "gsm8k_tokens": 528448,
+   "bfcl_no_call": 5,
+   "bfcl_tokens": 12763
+  }
+ },
+ "bfcl_reasons": {
+  "Qwen Q4_0, T4": {
+   "0 tool calls": 82,
+   "value formatted=false": 1,
+   "value operating_hours=11": 1,
+   "value cell_type=\"human cell\"": 1,
+   "value food_type=\"Thai food\"": 1,
+   "value conditions={\"school\": \"Bluebird High School\"}": 1,
+   "value end_range=2": 1,
+   "value discount_rate=8": 1,
+   "value annual_interest_rate=5": 1,
+   "value annual_return=7": 1,
+   "value interest_rate=5": 1,
+   "value rate_of_return=8": 1,
+   "value act_name=\"Criminal Law Amendment Act of 2013\"": 1,
+   "value fee=300": 1,
+   "value plant_types=[\"Annual\", \"Perennial\", \"Shrub\", \"Tree\", \"Herbs\", \"Fruits\"]": 1,
+   "value date=\"2022/08/16\"": 1,
+   "value energy_type=\"renewable energy\"": 1,
+   "value facilities=[\"Wi-Fi\", \"Reading Room\", \"Fiction\", \"Children Section\", \"Cafe\"]": 1,
+   "value days_ahead=1": 1,
+   "value extra_info=true": 1,
+   "missing format": 1,
+   "missing exclusion": 1,
+   "value month=\"upcoming\"": 1,
+   "value features=[\"price\"]": 1,
+   "value progression=[\"C\", \"F\", \"G\", \"C\"]": 1,
+   "value key=\"C sharp major\"": 1,
+   "value team=\"Cleveland Cavaliers\"": 1,
+   "value deck=[{\"rank\": \"Queen\", \"suit\": \"Hearts\"}]": 1,
+   "value dish=\"cookies\"": 1,
+   "value ingredients=[\"pasta\", \"cheese\", \"vegetable oil\", \"garlic\", \"herbs\"]": 1,
+   "name restaurant_search_find_closest": 1,
+   "value items=[\"olive oil\"]": 1,
+   "value pack_size=[12]": 1,
+   "2 tool calls": 1,
+   "value room_type=\"Single Room\"": 1,
+   "value room_type=\"single room\"": 1,
+   "value room_type=\"luxury room\"": 1,
+   "value base_currency=\"US\"": 1,
+   "value base_currency=\"US dollars\"": 1,
+   "value base_currency=\"British pounds\"": 1
+  },
+  "Gemma E2B, T4": {
+   "missing root_type": 1,
+   "value species=\"human\"": 1,
+   "value cell_type=\"human cell\"": 1,
+   "value database=\"database\"": 1,
+   "value annual_return=7": 1,
+   "value annual_growth_rate=6": 1,
+   "value rate_of_return=8": 1,
+   "value annual_interest_rate=3": 1,
+   "value annual_yield=5": 1,
+   "value location=\"New York\"": 1,
+   "value city=\"Chicago\"": 1,
+   "value court_location=\"Los Angeles court\"": 1,
+   "value fuel_type=\"gasoline\"": 1,
+   "0 tool calls": 6,
+   "value topic=\"psychology behavior group dynamics\"": 1,
+   "missing detail": 1,
+   "value location=\"New York, NY\"": 1,
+   "value interest_rate=5": 1,
+   "value gender=\"female\"": 1,
+   "value cards={\"Alex\": \"A of spades, K of spades\", \"Sam\": \"2 of diamonds, 3 of clubs\", \"Robert": 1,
+   "missing required deck_size": 1,
+   "name restaurant_search_find_closest": 1,
+   "value quantity=[3, 5]": 1,
+   "value product_list=[\"apples\", \"rice\", \"12 pack of bottled water\"]": 1,
+   "value items=[\"pumpkin\", \"eggs\"]": 1,
+   "value location=\"Central Park, New York\"": 1
+  },
+  "Gemma E2B + drafter, T4": {
+   "missing root_type": 1,
+   "value species=\"human\"": 1,
+   "value cell_type=\"human cell\"": 1,
+   "value database=\"database\"": 1,
+   "value annual_return=7": 1,
+   "value annual_growth_rate=6": 1,
+   "value rate_of_return=8": 1,
+   "value annual_interest_rate=3": 1,
+   "value annual_yield=5": 1,
+   "value location=\"New York\"": 1,
+   "value city=\"Chicago\"": 1,
+   "value court_location=\"Los Angeles court\"": 1,
+   "value fuel_type=\"gasoline\"": 1,
+   "0 tool calls": 6,
+   "value topic=\"psychology behavior group dynamics\"": 1,
+   "missing detail": 1,
+   "value location=\"New York, NY\"": 1,
+   "value interest_rate=5": 1,
+   "value gender=\"female\"": 1,
+   "value cards={\"Alex\": \"A of spades, K of spades\", \"Sam\": \"2 of diamonds, 3 of clubs\", \"Robert": 1,
+   "missing required deck_size": 1,
+   "name restaurant_search_find_closest": 1,
+   "value quantity=[3, 5]": 1,
+   "value product_list=[\"apples\", \"rice\", \"12 pack of bottled water\"]": 1,
+   "value items=[\"pumpkin\", \"eggs\"]": 1,
+   "value location=\"Central Park, New York\"": 1
+  }
+ },
+ "differ": {
+  "gsm8k": {
+   "n": 1319,
+   "same_text": 235,
+   "same_right": 1272
+  },
+  "bfcl": {
+   "n": 400,
+   "same_text": 398,
+   "same_right": 400
+  },
+  "suite": {
+   "n": 3880,
+   "same_right": 3829
+  }
+ }
+}
